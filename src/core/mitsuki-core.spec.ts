@@ -1,3 +1,4 @@
+import { Mirai } from 'mirai-ts';
 import { test } from '@jest/globals';
 import {
   CLASS_TYPE,
@@ -271,7 +272,7 @@ describe('工具函数的测试', () => {
 describe('Mitsuki主类的测试', () => {
   test('Mitsuki实例的创建', () => {
     //测试
-    expect(new Mitsuki()).toBeDefined();
+    expect(new Mitsuki(new Mirai())).toBeDefined();
   });
   test('Mitsuki工厂创建时IoC容器是否成功创建', () => {
     //创建测试用例
@@ -280,13 +281,6 @@ describe('Mitsuki主类的测试', () => {
     MitsukiFactory(Test);
     //测试
     expect(Container.container).toBeDefined();
-  });
-  test('测试在传入非基模块时，是否正常抛出异常', () => {
-    //创建测试用例
-    @Module()
-    class Test {}
-    //测试
-    expect(() => MitsukiFactory(Test)).toThrowError();
   });
 });
 

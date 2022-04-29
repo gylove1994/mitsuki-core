@@ -1,3 +1,6 @@
+import path from 'path';
+import fs from 'node:fs';
+import { Mirai, MiraiApiHttpSetting } from 'mirai-ts';
 import 'reflect-metadata';
 import {
   Constructor,
@@ -12,6 +15,7 @@ export const PROVIDER_METADATA = 'ioc:provider';
 export const METHOD_METADATA = 'ioc:method';
 export const PARAM_METADATA = 'ioc:param';
 export const CONTAINER_METADATA = 'ioc:container';
+export const INIT_METADATA = 'ioc:init'
 //元信息的key
 export const MODULES_OPTIONS = 'moduleOptions';
 export const CLASS_TYPE = 'classType';
@@ -20,15 +24,25 @@ export const METHOD_TYPE = 'methodType';
 // mitsuki 主类
 //todo 未完成的类
 export class Mitsuki {
-  constructor() {}
+  public readonly mirai: Mirai;
+  constructor(mirai:Mirai) {
+    this.mirai = mirai;
+  }
 }
 
 // mitsuki主类及IoC容器的工厂函数
 //todo 未完成的方法
-export function MitsukiFactory(module: Constructor) {
+export function MitsukiFactory(module: Constructor,miraiApiHttpSetting?:MiraiApiHttpSetting) {
   new Container(false);
   module_core(module);
-  return new Mitsuki();
+  //当未传入miraiApiHttpSetting参数时自动在项目根目录下寻找
+  if(miraiApiHttpSetting == undefined && fs.existsSync(path.join(__dirname,'/miraiApiHttpSetting.json'))) 
+    miraiApiHttpSetting = JSON.parse(fs.readFileSync(path.join(__dirname,'/miraiApiHttpSetting.json'),'utf-8'));
+  const mirai = new Mirai(miraiApiHttpSetting);
+  Reflect.defineMetadata(CLASS_TYPE,INIT_METADATA,Mirai);
+  Container.container?.bind('mirai',{type:INIT_METADATA,instance:mirai});
+  const mitsuki = new Mitsuki(mirai);
+  return mitsuki;
 }
 
 //模块装饰器，用于将模块信息绑定在模块的元信息上
