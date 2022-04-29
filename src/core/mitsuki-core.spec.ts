@@ -1,6 +1,5 @@
 import { test } from '@jest/globals';
 import {
-  BASE_MODULE,
   CLASS_TYPE,
   Container,
   Controller,
@@ -11,7 +10,6 @@ import {
   Injectable,
   isConstructor,
   isFunction,
-  METHOD_METADATA,
   METHOD_TYPE,
   Mitsuki,
   MitsukiFactory,
