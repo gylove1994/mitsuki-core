@@ -77,6 +77,7 @@ export function createClassDecorator(classType: string) {
 
 export const Controller = createClassDecorator(CONTROLLER_METADATA);
 export const Injectable = createClassDecorator(PROVIDER_METADATA);
+
 //IoC容器的主类
 //todo 开启了测试模式，在生产模式需要关闭
 export class Container<T extends Record<string, unknown> = {}> {
@@ -106,22 +107,9 @@ export function createInstance<T>(
   constructor: Constructor<T>,
 ): T {
   const type = getMetaAndThrow(CLASS_TYPE, constructor);
-  const param = Reflect.getMetadata(
-    'design:paramtypes',
-    constructor,
-  ) as ParamType;
-  const tobeInjected = [] as any[];
-  param?.forEach((dependency) => {
-    //首先尝试从容器中找到需要的注入的实例
-    const instance = container.get(dependency.name) as Provider<any>;
-    if (instance != undefined) {
-      tobeInjected.push(instance.instance);
-      return;
-    } else {
-      //如果容器中没有，则递归创建
-      tobeInjected.push(createInstance(container, dependency));
-    }
-  });
+  //todo 抽离由对函数参数实例化的函数
+  //todo 待测试
+  const tobeInjected = getParamInstance(constructor);
   const provider: Provider<T> = {
     type,
     instance: new constructor(...tobeInjected),
@@ -153,11 +141,15 @@ export function module_core(target: Object) {
         (item) => !isConstructor(p[item]) && isFunction(p[item]),
       );
       methodsNames.forEach((methodsName) => {
+        //todo 收集参数
         const fn = p[methodsName];
+        //可能会出现由于名字的问题而导致无法实例化（未验证）
+        const tobeInjected = getParamInstance(fn);
         const meta = Reflect.getMetadata(METHOD_TYPE, fn);
-        //调用闭包
+        //调用闭包 
+        //todo 改用async/await实现
         function fnToCall() {
-          return fn.call(instance);
+          return fn.call(instance,...tobeInjected);
         }
         if (meta != undefined) {
           container.bind('[method]' + methodsName, {
@@ -217,4 +209,28 @@ export function isConstructor(f: Function) {
 export function isFunction(f: any) {
   if (typeof f == 'function') return true;
   return false;
+}
+
+//todo 待测试
+//实例化方法参数列表（数据耦合）
+export function getParamInstance<T>(constructor:Constructor<T>) {
+  const container = Container.container ;
+  if(container == undefined) throw new Error('IoC容器未创建');
+  const param = Reflect.getMetadata(
+    'design:paramtypes',
+    constructor,
+  ) as ParamType;
+  const tobeInjected = [] as any[];
+  param?.forEach((dependency) => {
+    //首先尝试从容器中找到需要的注入的实例
+    const instance = container.get(dependency.name) as Provider<any>;
+    if (instance != undefined) {
+      tobeInjected.push(instance.instance);
+      return;
+    } else {
+      //如果容器中没有，则递归创建
+      tobeInjected.push(createInstance(container, dependency));
+    }
+  });
+  return tobeInjected;
 }
