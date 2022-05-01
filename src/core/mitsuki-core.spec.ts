@@ -113,6 +113,10 @@ describe('依赖实例的递归创建', () => {
       return this.testInject.hello();
     }
   }
+  @Controller()
+  class TestController3{
+    constructor(private readonly mirai: Mirai){}
+  }
   @Module({
     providers: [TestInject],
     controllers: [TestController2],
@@ -132,20 +136,24 @@ describe('依赖实例的递归创建', () => {
     modules: [TestModule2],
   })
   class TestModule {}
+  @Module({
+    controllers:[TestController3]
+  })
+  class TestModule4 {}
   //----------------------------------------------
   test('测试createInstance是否可以实例化依赖并自动注入', () => {
     //创建待测试案例
     const container = new Container();
     createInstance(container, TestInject2);
     //创建期望结果
-    const res = new Container().bind('TestInject', {
+    const res = new Container().bind(TestInject, {
       type: 'ioc:provider',
       instance: new TestInject(),
-    } as Provider<TestInject>);
-    res.bind('TestInject2', {
+    },'[class]');
+    res.bind(TestInject2, {
       type: 'ioc:provider',
-      instance: new TestInject2(res.get('TestInject').instance),
-    } as Provider<TestInject2>);
+      instance: new TestInject2(res.get<Provider<TestInject>>(TestInject,'[class]')!.instance),
+    },'[class]');
     //测试
     expect(container).toStrictEqual(res);
   });
@@ -155,7 +163,7 @@ describe('依赖实例的递归创建', () => {
     createInstance(container, TestInject2);
     //测试
     expect(
-      (container.get('TestInject2') as Provider<TestInject2>).instance.hello(),
+      (container.get(TestInject2,'[class]') as Provider<TestInject2>).instance.hello(),
     ).toBe('hello');
   });
   test('测试依赖项不会被重复创建', () => {
@@ -164,14 +172,14 @@ describe('依赖实例的递归创建', () => {
     createInstance(container, TestInject);
     createInstance(container, TestInject2);
     //创建期望结果
-    const res = new Container().bind('TestInject', {
+    const res = new Container().bind(TestInject, {
       type: 'ioc:provider',
       instance: new TestInject(),
-    } as Provider<TestInject>);
-    res.bind('TestInject2', {
+    },'[class]');
+    res.bind(TestInject2, {
       type: 'ioc:provider',
-      instance: new TestInject2(res.get('TestInject').instance),
-    } as Provider<TestInject2>);
+      instance: new TestInject2(res.get(TestInject,'[class]').instance),
+    },'[class]');
     //测试
     expect(res).toStrictEqual(container);
   });
@@ -180,18 +188,18 @@ describe('依赖实例的递归创建', () => {
     const con = new Container();
     module_core(TestModule);
     //创建期望结果
-    const res = new Container().bind('TestInject', {
+    const res = new Container().bind(TestInject, {
       type: 'ioc:provider',
       instance: new TestInject(),
-    } as Provider<TestInject>);
-    res.bind('TestInject2', {
+    },'[class]');
+    res.bind(TestInject2, {
       type: 'ioc:provider',
-      instance: new TestInject2(res.get('TestInject').instance),
-    } as Provider<TestInject2>);
-    res.bind('TestController', {
+      instance: new TestInject2(res.get(TestInject,'[class]').instance),
+    },'[class]');
+    res.bind(TestController, {
       type: 'ioc:controller',
-      instance: new TestController(res.get('TestInject').instance),
-    });
+      instance: new TestController(res.get(TestInject,'[class]').instance),
+    },'[class]');
     //结果
     expect(res).toStrictEqual(con);
   });
@@ -208,14 +216,14 @@ describe('依赖实例的递归创建', () => {
     class Test {}
     module_core(Test);
     //创建期望结果
-    const res = new Container().bind('TestInject', {
+    const res = new Container().bind(TestInject, {
       type: 'ioc:provider',
       instance: new TestInject(),
-    } as Provider<TestInject>);
-    res.bind('TestInject2', {
+    },'[class]');
+    res.bind(TestInject2, {
       type: 'ioc:provider',
-      instance: new TestInject2(res.get('TestInject').instance),
-    } as Provider<TestInject2>);
+      instance: new TestInject2(res.get(TestInject,'[class]').instance),
+    },'[class]');
     //测试
     expect(res).toStrictEqual(con);
   });
@@ -224,7 +232,11 @@ describe('依赖实例的递归创建', () => {
     const con = new Container();
     module_core(TestModule3);
     //测试
-    expect('hello').toBe(con.get('[method]hello').fn());
+    expect('hello').toBe(con.get(TestController2.prototype.hello,'[method]').instance());
+  });
+  test('测试对于方法参数的实例对象已在IoC容器中时，不会重复创建',()=>{
+    const mitsuki = MitsukiFactory(TestModule4);
+    console.log(Container.container)
   });
 });
 
@@ -293,5 +305,14 @@ describe('IoC容器的测试', () => {
     }
     //测试
     expect(() => toBeTested()).toThrowError();
+  });
+  test('容器在使用md5产生摘要信息后是否可以正常读取',()=>{
+    //创建测试用例
+    new Container()
+    const con = Container.container
+    class Test{}
+    con?.bind(Test,{type:'a',instance:new Test},'[class]')
+    //测试
+    expect(con?.get(Test,'[class]')).toBeDefined()
   });
 });

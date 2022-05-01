@@ -23,6 +23,11 @@ Mitsuki-bot是基于[mirai](https://github.com/mamoe/mirai)及[mirai-ts](https:/
 ## Todo
 - 对元数据的key与val的内容进行标准化 （完成）
 - 从依赖中抽离带有标识的函数 (完成)
-- 创建mirai-ts的实例，并创建代理类（代理模式）
+- 创建mirai-ts的实例，并创建代理 
+- 设置指定的方法装饰器，用于标识IoC容器分发的目标位置
+- 解决依赖重名所带来的问题  (完成)
+- 添加一个新的log库
+- 全面支持async/await
 
-
+## 中期目标
+- 创建脚手架

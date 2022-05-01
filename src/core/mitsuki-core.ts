@@ -1,10 +1,10 @@
 import path from 'path';
 import fs from 'node:fs';
+import md5 from 'md5';
 import { Mirai, MiraiApiHttpSetting } from 'mirai-ts';
 import 'reflect-metadata';
 import {
   Constructor,
-  GetType,
   ModuleOptions,
   ParamType,
   Provider,
@@ -15,7 +15,7 @@ export const PROVIDER_METADATA = 'ioc:provider';
 export const METHOD_METADATA = 'ioc:method';
 export const PARAM_METADATA = 'ioc:param';
 export const CONTAINER_METADATA = 'ioc:container';
-export const INIT_METADATA = 'ioc:init'
+export const INIT_METADATA = 'ioc:init';
 //元信息的key
 export const MODULES_OPTIONS = 'moduleOptions';
 export const CLASS_TYPE = 'classType';
@@ -25,22 +25,33 @@ export const METHOD_TYPE = 'methodType';
 //todo 未完成的类
 export class Mitsuki {
   public readonly mirai: Mirai;
-  constructor(mirai:Mirai) {
+  constructor(mirai: Mirai) {
     this.mirai = mirai;
   }
 }
 
 // mitsuki主类及IoC容器的工厂函数
 //todo 未完成的方法
-export function MitsukiFactory(module: Constructor,miraiApiHttpSetting?:MiraiApiHttpSetting) {
+export function MitsukiFactory(
+  module: Constructor,
+  miraiApiHttpSetting?: MiraiApiHttpSetting,
+) {
   new Container(false);
+  Reflect.defineMetadata(CLASS_TYPE, INIT_METADATA, Mirai);
   module_core(module);
   //当未传入miraiApiHttpSetting参数时自动在项目根目录下寻找
-  if(miraiApiHttpSetting == undefined && fs.existsSync(path.join(__dirname,'/miraiApiHttpSetting.json'))) 
-    miraiApiHttpSetting = JSON.parse(fs.readFileSync(path.join(__dirname,'/miraiApiHttpSetting.json'),'utf-8'));
+  if (
+    miraiApiHttpSetting == undefined &&
+    fs.existsSync(path.join(__dirname, '/miraiApiHttpSetting.json'))
+  )
+    miraiApiHttpSetting = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, '/miraiApiHttpSetting.json'),
+        'utf-8',
+      ),
+    );
   const mirai = new Mirai(miraiApiHttpSetting);
-  Reflect.defineMetadata(CLASS_TYPE,INIT_METADATA,Mirai);
-  Container.container?.bind('mirai',{type:INIT_METADATA,instance:mirai});
+  Container.container?.bind(Mirai, { type: INIT_METADATA, instance: mirai },'[class]');
   const mitsuki = new Mitsuki(mirai);
   return mitsuki;
 }
@@ -80,7 +91,7 @@ export const Injectable = createClassDecorator(PROVIDER_METADATA);
 
 //IoC容器的主类
 //todo 开启了测试模式，在生产模式需要关闭
-export class Container<T extends Record<string, unknown> = {}> {
+export class Container {
   public static container?: Container;
   private map: Map<string, Record<string, unknown>>;
   constructor(testMode: boolean = true) {
@@ -89,15 +100,37 @@ export class Container<T extends Record<string, unknown> = {}> {
     this.map = new Map();
     Container.container = this;
   }
-  public bind<K extends string, V extends Record<string, unknown>>(
-    key: K,
-    val: V,
-  ): Container<T & Record<K, V>> {
-    this.map.set(key, val);
-    return this as Container<T & Record<K, V>>;
+  //直接使用字符串作为键值，可能会造成重名(不推荐使用)
+  public bind(key: string, val: Provider): this;
+  //使用原型作为唯一标识符，通过md5计算得出其摘要，并将摘要作为键名保存(推荐)
+  public bind(proto: Object, val: Provider, prefix?:string): this;
+
+  public bind(key: string | Object, val: Provider, prefix?:string) {
+    if (typeof key == 'string') {
+      this.map.set(key, val);
+      return this;
+    } else {
+      this.map.set(prefix + md5(key.toString()),val)
+      return this;
+    }
   }
-  public get<K extends string>(key: K): GetType<T, K> {
-    return this.map.get(key) as GetType<T, K>;
+  //直接使用键值读取内容
+  public get<T = any>(key:string): T | undefined;
+  //使用原型的md5值读取内容,若不提供prefix则会启用模糊匹配模式，性能会有所降低
+  public get<T = any>(key:Object, prefix?:string): T | undefined;
+
+  public get<T = any>(key: string | Object,prefix?:string): T | undefined{
+    if(typeof key == 'string'){
+      return this.map.get(key) as T | undefined; 
+    }else if(prefix != undefined){
+      return this.map.get(prefix + md5(key.toString())) as T | undefined;
+    }else{
+      //模糊搜索
+      const keys = [...this.map.keys()];
+      const res = keys.filter(val => RegExp('/'+md5(key.toString()+'/')).test(val));
+      if(res.length > 1) throw new Error('ioc容器中有多个符合该模糊匹配的内容');
+      return this.map.get(res[0]) as T | undefined;
+    }
   }
 }
 
@@ -107,14 +140,12 @@ export function createInstance<T>(
   constructor: Constructor<T>,
 ): T {
   const type = getMetaAndThrow(CLASS_TYPE, constructor);
-  //todo 抽离由对函数参数实例化的函数
-  //todo 待测试
   const tobeInjected = getParamInstance(constructor);
   const provider: Provider<T> = {
     type,
     instance: new constructor(...tobeInjected),
   };
-  container.bind(constructor.name, provider);
+  container.bind(constructor, provider,'[class]');
   return provider.instance;
 }
 
@@ -136,6 +167,7 @@ export function module_core(target: Object) {
     moduleOptions.controllers?.forEach((dependency) => {
       const instance = createInstance(container, dependency);
       //将有方法装饰器装饰的函数放入IoC容器，其名字前会加入前缀[method]
+      //todo 待测试
       const p = Object.getPrototypeOf(instance);
       const methodsNames = Object.getOwnPropertyNames(p).filter(
         (item) => !isConstructor(p[item]) && isFunction(p[item]),
@@ -143,19 +175,18 @@ export function module_core(target: Object) {
       methodsNames.forEach((methodsName) => {
         //todo 收集参数
         const fn = p[methodsName];
-        //可能会出现由于名字的问题而导致无法实例化（未验证）
         const tobeInjected = getParamInstance(fn);
         const meta = Reflect.getMetadata(METHOD_TYPE, fn);
-        //调用闭包 
+        //调用闭包
         //todo 改用async/await实现
         function fnToCall() {
-          return fn.call(instance,...tobeInjected);
+          return fn.call(instance, ...tobeInjected);
         }
         if (meta != undefined) {
-          container.bind('[method]' + methodsName, {
+          container.bind(fn, {
             type: meta,
-            fn: fnToCall,
-          });
+            instance: fnToCall,
+          },'[method]');
         }
       });
     });
@@ -213,9 +244,9 @@ export function isFunction(f: any) {
 
 //todo 待测试
 //实例化方法参数列表（数据耦合）
-export function getParamInstance<T>(constructor:Constructor<T>) {
-  const container = Container.container ;
-  if(container == undefined) throw new Error('IoC容器未创建');
+export function getParamInstance<T>(constructor: Constructor<T>) {
+  const container = Container.container;
+  if (container == undefined) throw new Error('IoC容器未创建');
   const param = Reflect.getMetadata(
     'design:paramtypes',
     constructor,
@@ -223,7 +254,7 @@ export function getParamInstance<T>(constructor:Constructor<T>) {
   const tobeInjected = [] as any[];
   param?.forEach((dependency) => {
     //首先尝试从容器中找到需要的注入的实例
-    const instance = container.get(dependency.name) as Provider<any>;
+    const instance = container.get(dependency) as Provider<any>;
     if (instance != undefined) {
       tobeInjected.push(instance.instance);
       return;
