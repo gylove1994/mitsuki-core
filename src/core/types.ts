@@ -16,5 +16,17 @@ export type Provider<T = any> = {
 }
 export type ParamType = [...arg:Constructor[]] | undefined
 
+//元信息的value
+export const CONTROLLER_METADATA = 'ioc:controller';
+export const PROVIDER_METADATA = 'ioc:provider';
+export const METHOD_METADATA = 'ioc:method';
+export const PARAM_METADATA = 'ioc:param';
+export const CONTAINER_METADATA = 'ioc:container';
+export const INIT_METADATA = 'ioc:init';
+//元信息的key
+export const MODULES_OPTIONS = 'moduleOptions';
+export const CLASS_TYPE = 'classType';
+export const METHOD_TYPE = 'methodType';
+
 
 
