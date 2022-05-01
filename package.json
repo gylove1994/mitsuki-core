@@ -11,6 +11,7 @@
     "test-w": "jest --watchAll"
   },
   "dependencies": {
+    "log4js": "^6.4.6",
     "md5": "^2.3.0",
     "mirai-ts": "^2.2.1",
     "reflect-metadata": "^0.1.13"
