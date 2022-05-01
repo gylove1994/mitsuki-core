@@ -1,4 +1,5 @@
 import { getMetaAndThrow, isConstructor, isFunction } from "./utils";
+import 'reflect-metadata'
 
 describe('工具函数的测试', () => {
   test('测试getMetaAndThrow函数是否可以获得元信息', () => {

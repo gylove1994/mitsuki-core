@@ -1,6 +1,7 @@
 import { Controller, createClassDecorator, createMethodDecorator, Injectable, Module } from "./decorators";
 import { Container } from "./ioc-container";
 import { CLASS_TYPE, METHOD_TYPE, ModuleOptions, MODULES_OPTIONS } from "./types";
+import 'reflect-metadata'
 
 beforeEach(() => {
   //恢复IoC容器的初始状态

@@ -1,5 +1,6 @@
 import { CLASS_TYPE, CONTROLLER_METADATA, METHOD_TYPE, MODULES_OPTIONS, PROVIDER_METADATA } from "./types";
 import { ModuleOptions } from "./types";
+import 'reflect-metadata'
 
 export const Controller = createClassDecorator(CONTROLLER_METADATA);
 export const Injectable = createClassDecorator(PROVIDER_METADATA);

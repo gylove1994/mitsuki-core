@@ -3,9 +3,12 @@ import { Controller, createMethodDecorator, Injectable, Module } from "./decorat
 import { Container, createInstance, module_core } from "./ioc-container";
 import { MitsukiFactory } from "./mitsuki-core";
 import { Provider } from "./types";
+import 'reflect-metadata'
 
-
-
+beforeEach(() => {
+  //恢复IoC容器的初始状态
+  Container.container = undefined;
+});
 
 describe('IoC容器的测试', () => {
   //公共测试用例-------------------------------------

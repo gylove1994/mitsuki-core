@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+
 //获取元信息，如果元信息未定义则抛出异常
 export function getMetaAndThrow<T = any>(
   metaKey: string,

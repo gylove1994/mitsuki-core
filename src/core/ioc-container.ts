@@ -1,8 +1,8 @@
-//IoC容器的主类
-
 import md5 from "md5";
 import { CLASS_TYPE, Constructor, METHOD_TYPE, ModuleOptions, MODULES_OPTIONS, ParamType, Provider } from "./types";
 import { getMetaAndThrow, isConstructor, isFunction } from "./utils";
+import 'reflect-metadata'
+
 
 //todo 开启了测试模式，在生产模式需要关闭
 export class Container {

@@ -7,6 +7,7 @@ import {
   MitsukiFactory,
 } from './mitsuki-core';
 import { ModuleOptions, Provider } from './types';
+import 'reflect-metadata'
 
 beforeEach(() => {
   //恢复IoC容器的初始状态
