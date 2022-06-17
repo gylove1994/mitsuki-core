@@ -26,7 +26,7 @@ Mitsuki-bot是基于[mirai](https://github.com/mamoe/mirai)及[mirai-ts](https:/
 - 创建mirai-ts的实例，并创建代理 
 - 设置指定的方法装饰器，用于标识IoC容器分发的目标位置
 - 解决依赖重名所带来的问题  (完成)
-- 添加一个新的log库
+- 添加一个新的log库 (完成)
 - 全面支持async/await
 
 ## 中期目标
