@@ -1,12 +1,21 @@
+import Log4js from 'log4js';
 import { Controller, createClassDecorator, createMethodDecorator, Injectable, Module } from "./decorators";
 import { Container } from "./ioc-container";
 import { CLASS_TYPE, METHOD_TYPE, ModuleOptions, MODULES_OPTIONS } from "./types";
-import 'reflect-metadata'
+import 'reflect-metadata';
 
 beforeEach(() => {
+  const logger = Log4js.getLogger('test');
+  logger.level = 'debug';
   //恢复IoC容器的初始状态
   Container.container = undefined;
+  logger.info('单元测试开始');
 });
+
+afterEach(()=>{
+  const logger = Log4js.getLogger('test');
+  logger.info('单元测试结束');
+})
 
 describe('装饰器的测试', () => {
   test('测试由工厂函数生成的类装饰器工厂函数,是否可以正确添加元信息', () => {

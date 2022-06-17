@@ -1,4 +1,4 @@
-import { CLASS_TYPE, CONTROLLER_METADATA, METHOD_TYPE, MODULES_OPTIONS, PROVIDER_METADATA } from "./types";
+import { CLASS_TYPE, CONTROLLER_METADATA, METHOD_TYPE, MODULES_OPTIONS, PARAM_METADATA, PROVIDER_METADATA } from "./types";
 import { ModuleOptions } from "./types";
 import 'reflect-metadata'
 
@@ -13,12 +13,12 @@ export function Module(moduleOptions?: ModuleOptions): ClassDecorator {
 }
 
 //用于生成只用于添加标记的参数装饰器
-// export function createParamDecorator(val:string){
-//   return ():ParameterDecorator =>
-//     (target,key,index) => {
-//       Reflect.defineMetadata(PARAM_METADATA,val,target)
-//   }
-// }
+export function createParamDecorator(val:string){
+  return ():ParameterDecorator =>
+    (target,key,index) => {
+      Reflect.defineMetadata(PARAM_METADATA,val,target)
+  }
+}
 
 //用于生成只用于添加标记的方法装饰器
 export function createMethodDecorator(val: string) {
