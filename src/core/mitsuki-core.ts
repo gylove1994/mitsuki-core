@@ -7,9 +7,6 @@ import {
   CLASS_TYPE,
   Constructor,
   INIT_METADATA,
-  ModuleOptions,
-  ParamType,
-  Provider,
 } from './types';
 import { Container, module_core } from './ioc-container';
 

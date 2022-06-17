@@ -6,13 +6,22 @@ import {
   Mitsuki,
   MitsukiFactory,
 } from './mitsuki-core';
+import Log4js from 'log4js'
 import { ModuleOptions, Provider } from './types';
 import 'reflect-metadata'
 
 beforeEach(() => {
+  const logger = Log4js.getLogger('test');
+  logger.level = 'debug';
   //恢复IoC容器的初始状态
   Container.container = undefined;
+  logger.info('单元测试开始');
 });
+
+afterEach(()=>{
+  const logger = Log4js.getLogger('test');
+  logger.info('单元测试结束');
+})
 
 describe('Mitsuki主类的测试', () => {
   test('Mitsuki实例的创建', () => {
