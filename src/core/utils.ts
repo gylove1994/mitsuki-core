@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { Log4js } from 'log4js';
 
 //获取元信息，如果元信息未定义则抛出异常
 export function getMetaAndThrow<T = any>(
@@ -45,4 +46,3 @@ export function isFunction(f: any) {
   if (typeof f == 'function') return true;
   return false;
 }
-
