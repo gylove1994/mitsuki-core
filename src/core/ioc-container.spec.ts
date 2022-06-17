@@ -1,14 +1,23 @@
+import Log4js from 'log4js';
 import Mirai from "mirai-ts";
 import { Controller, createMethodDecorator, Injectable, Module } from "./decorators";
 import { Container, createInstance, module_core } from "./ioc-container";
 import { MitsukiFactory } from "./mitsuki-core";
 import { Provider } from "./types";
-import 'reflect-metadata'
+import 'reflect-metadata';
 
 beforeEach(() => {
+  const logger = Log4js.getLogger('test'); 
+  logger.level = 'debug';
   //恢复IoC容器的初始状态
-  Container.container = undefined;
+  Container.container = undefined; 
+  logger.info('单元测试开始');
 });
+
+afterEach(()=>{
+  const logger = Log4js.getLogger('test');
+  logger.info('单元测试结束');
+})
 
 describe('IoC容器的测试', () => {
   //公共测试用例-------------------------------------
