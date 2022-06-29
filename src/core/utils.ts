@@ -33,12 +33,8 @@ export function getMetaAndThrow<T = any>(
 
 //判断传入的函数是不是构造函数
 export function isConstructor(f: Function) {
-  try {
-    Reflect.construct(String, [], f);
-  } catch (e) {
-    return false;
-  }
-  return true;
+  if(f.name === 'constructor') return true;
+  return false;
 }
 
 //判断传入的参数是不是函数

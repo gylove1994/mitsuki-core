@@ -1,23 +1,28 @@
 import Log4js from 'log4js';
-import Mirai from "mirai-ts";
-import { Controller, createMethodDecorator, Injectable, Module } from "./decorators";
-import { Container, createInstance, module_core } from "./ioc-container";
-import { MitsukiFactory } from "./mitsuki-core";
-import { Provider } from "./types";
+import Mirai from 'mirai-ts';
+import {
+  Controller,
+  createMethodDecorator,
+  Injectable,
+  Module,
+} from './decorators';
+import { Container, createInstance, module_core } from './ioc-container';
+import { MitsukiFactory } from './mitsuki-core';
+import { Provider } from './types';
 import 'reflect-metadata';
 
 beforeEach(() => {
-  const logger = Log4js.getLogger('test'); 
+  const logger = Log4js.getLogger('test');
   logger.level = 'debug';
   //恢复IoC容器的初始状态
-  Container.container = undefined; 
+  Container.container = undefined;
   logger.info('单元测试开始');
 });
 
-afterEach(()=>{
+afterEach(() => {
   const logger = Log4js.getLogger('test');
   logger.info('单元测试结束');
-})
+});
 
 describe('IoC容器的测试', () => {
   //公共测试用例-------------------------------------
@@ -27,6 +32,10 @@ describe('IoC容器的测试', () => {
     public hello() {
       return 'hello';
     }
+    public hello2() {
+      return 'hello2';
+    }
+    public hello3() { return 'hello3'; }
   }
   @Injectable()
   class TestInject2 {
@@ -46,10 +55,15 @@ describe('IoC容器的测试', () => {
     public hello() {
       return this.testInject.hello();
     }
+    @testMethodDecorator()
+    public hello2() {
+      return this.testInject.hello2();
+    }
+    public hello3() { return this.testInject.hello3(); }
   }
   @Controller()
-  class TestController3{
-    constructor(private readonly mirai: Mirai){}
+  class TestController3 {
+    constructor(private readonly mirai: Mirai) {}
   }
   @Module({
     providers: [TestInject],
@@ -71,7 +85,7 @@ describe('IoC容器的测试', () => {
   })
   class TestModule {}
   @Module({
-    controllers:[TestController3]
+    controllers: [TestController3],
   })
   class TestModule4 {}
   //----------------------------------------------
@@ -80,14 +94,24 @@ describe('IoC容器的测试', () => {
     const container = new Container();
     createInstance(container, TestInject2);
     //创建期望结果
-    const res = new Container().bind(TestInject, {
-      type: 'ioc:provider',
-      instance: new TestInject(),
-    },'[class]');
-    res.bind(TestInject2, {
-      type: 'ioc:provider',
-      instance: new TestInject2(res.get<Provider<TestInject>>(TestInject,'[class]')!.instance),
-    },'[class]');
+    const res = new Container().bind(
+      TestInject,
+      {
+        type: 'ioc:provider',
+        instance: new TestInject(),
+      },
+      '[class]',
+    );
+    res.bind(
+      TestInject2,
+      {
+        type: 'ioc:provider',
+        instance: new TestInject2(
+          res.get<Provider<TestInject>>(TestInject, '[class]')!.instance,
+        ),
+      },
+      '[class]',
+    );
     //测试
     expect(container).toStrictEqual(res);
   });
@@ -97,7 +121,9 @@ describe('IoC容器的测试', () => {
     createInstance(container, TestInject2);
     //测试
     expect(
-      (container.get(TestInject2,'[class]') as Provider<TestInject2>).instance.hello(),
+      (
+        container.get(TestInject2, '[class]') as Provider<TestInject2>
+      ).instance.hello(),
     ).toBe('hello');
   });
   test('测试依赖项不会被重复创建', () => {
@@ -106,14 +132,22 @@ describe('IoC容器的测试', () => {
     createInstance(container, TestInject);
     createInstance(container, TestInject2);
     //创建期望结果
-    const res = new Container().bind(TestInject, {
-      type: 'ioc:provider',
-      instance: new TestInject(),
-    },'[class]');
-    res.bind(TestInject2, {
-      type: 'ioc:provider',
-      instance: new TestInject2(res.get(TestInject,'[class]').instance),
-    },'[class]');
+    const res = new Container().bind(
+      TestInject,
+      {
+        type: 'ioc:provider',
+        instance: new TestInject(),
+      },
+      '[class]',
+    );
+    res.bind(
+      TestInject2,
+      {
+        type: 'ioc:provider',
+        instance: new TestInject2(res.get(TestInject, '[class]').instance),
+      },
+      '[class]',
+    );
     //测试
     expect(res).toStrictEqual(container);
   });
@@ -122,18 +156,30 @@ describe('IoC容器的测试', () => {
     const con = new Container();
     module_core(TestModule);
     //创建期望结果
-    const res = new Container().bind(TestInject, {
-      type: 'ioc:provider',
-      instance: new TestInject(),
-    },'[class]');
-    res.bind(TestInject2, {
-      type: 'ioc:provider',
-      instance: new TestInject2(res.get(TestInject,'[class]').instance),
-    },'[class]');
-    res.bind(TestController, {
-      type: 'ioc:controller',
-      instance: new TestController(res.get(TestInject,'[class]').instance),
-    },'[class]');
+    const res = new Container().bind(
+      TestInject,
+      {
+        type: 'ioc:provider',
+        instance: new TestInject(),
+      },
+      '[class]',
+    );
+    res.bind(
+      TestInject2,
+      {
+        type: 'ioc:provider',
+        instance: new TestInject2(res.get(TestInject, '[class]').instance),
+      },
+      '[class]',
+    );
+    res.bind(
+      TestController,
+      {
+        type: 'ioc:controller',
+        instance: new TestController(res.get(TestInject, '[class]').instance),
+      },
+      '[class]',
+    );
     //结果
     expect(res).toStrictEqual(con);
   });
@@ -150,14 +196,22 @@ describe('IoC容器的测试', () => {
     class Test {}
     module_core(Test);
     //创建期望结果
-    const res = new Container().bind(TestInject, {
-      type: 'ioc:provider',
-      instance: new TestInject(),
-    },'[class]');
-    res.bind(TestInject2, {
-      type: 'ioc:provider',
-      instance: new TestInject2(res.get(TestInject,'[class]').instance),
-    },'[class]');
+    const res = new Container().bind(
+      TestInject,
+      {
+        type: 'ioc:provider',
+        instance: new TestInject(),
+      },
+      '[class]',
+    );
+    res.bind(
+      TestInject2,
+      {
+        type: 'ioc:provider',
+        instance: new TestInject2(res.get(TestInject, '[class]').instance),
+      },
+      '[class]',
+    );
     //测试
     expect(res).toStrictEqual(con);
   });
@@ -166,10 +220,12 @@ describe('IoC容器的测试', () => {
     const con = new Container();
     module_core(TestModule3);
     //测试
-    expect('hello').toBe(con.get(TestController2.prototype.hello,'[method]').instance());
+    expect('hello').toBe(
+      con.getMethods('test')[0](),
+    );
   });
-  test('测试对于方法参数的实例对象已在IoC容器中时，不会重复创建',()=>{
-    expect(() =>MitsukiFactory(TestModule4)).not.toThrowError()
+  test('测试对于方法参数的实例对象已在IoC容器中时，不会重复创建', () => {
+    expect(() => MitsukiFactory(TestModule4)).not.toThrowError();
   });
   test('容器在生产模式下创建多次是否会抛出异常', () => {
     //创建测试用例
@@ -180,13 +236,25 @@ describe('IoC容器的测试', () => {
     //测试
     expect(() => toBeTested()).toThrowError();
   });
-  test('容器在使用md5产生摘要信息后是否可以正常读取',()=>{
+  test('容器在使用md5产生摘要信息后是否可以正常读取', () => {
     //创建测试用例
-    new Container()
-    const con = Container.container
-    class Test{}
-    con?.bind(Test,{type:'a',instance:new Test},'[class]')
+    new Container();
+    const con = Container.container;
+    class Test {}
+    con?.bind(Test, { type: 'a', instance: new Test() }, '[class]');
     //测试
-    expect(con?.get(Test,'[class]')).toBeDefined()
+    expect(con?.get(Test, '[class]')).toBeDefined();
+  });
+  test('create接口函数的使用', () => {
+    //创建测试用例
+    new Container();
+    const con = Container.container;
+    con?.create(TestController2, '[class]');
+    expect(con?.get(TestController2, '[class]')).toBeDefined();
+  });
+  test('提取方法组', () => {
+    const con = new Container();
+    module_core(TestModule3);
+    expect(con.getMethods('test')).toBeDefined();
   });
 });

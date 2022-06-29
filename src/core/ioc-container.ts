@@ -1,8 +1,19 @@
-import md5 from "md5";
-import { CLASS_TYPE, Constructor, METHOD_TYPE, ModuleOptions, MODULES_OPTIONS, ParamType, Provider } from "./types";
-import { getMetaAndThrow, isConstructor, isFunction } from "./utils";
-import 'reflect-metadata'
-import Log4js from "log4js";
+import { Mirai } from 'mirai-ts';
+import md5 from 'md5';
+import {
+  CLASS_TYPE,
+  Constructor,
+  METHOD_TYPE,
+  ModuleOptions,
+  MODULES_OPTIONS,
+  OUTER_METADATA,
+  ParamType,
+  Provider,
+} from './types';
+import { getMetaAndThrow, isConstructor, isFunction } from './utils';
+import 'reflect-metadata';
+import Log4js from 'log4js';
+import { Logger } from 'mirai-ts';
 Log4js.getLogger('ioc-container').level = 'debug';
 
 //todo 开启了测试模式，在生产模式需要关闭
@@ -20,52 +31,76 @@ export class Container {
   //直接使用字符串作为键值，可能会造成重名(不推荐使用)
   public bind(key: string, val: Provider): this;
   //使用原型作为唯一标识符，通过md5计算得出其摘要，并将摘要作为键名保存(推荐)
-  public bind(proto: Object, val: Provider, prefix?:string): this;
+  public bind(proto: Object, val: Provider, prefix?: string): this;
 
-  public bind(key: string | Object, val: Provider, prefix?:string) {
+  public bind(key: string | Object, val: Provider, prefix?: string) {
     const logger = Log4js.getLogger('ioc-container');
     if (typeof key == 'string') {
       logger.debug('通过字符串模式向IoC容器中添加实例，实例id：' + key);
       this.map.set(key, val);
       return this;
     } else {
-      logger.debug('通过md5模式向IoC容器中添加实例,实例id：' + prefix + md5(key.toString()));
-      this.map.set(prefix + md5(key.toString()),val);
+      logger.debug(
+        '通过md5模式向IoC容器中添加实例,实例id：' +
+          prefix +
+          md5(key.toString()),
+      );
+      this.map.set(prefix + md5(key.toString()), val);
       return this;
     }
   }
   //直接使用键值读取内容
-  public get<T = any>(key:string): T | undefined;
+  public get<T = any>(key: string): T | undefined;
   //使用原型的md5值读取内容,若不提供prefix则会启用模糊匹配模式，性能会有所降低
-  public get<T = any>(key:Object, prefix?:string): T | undefined;
+  public get<T = any>(key: Object, prefix?: string): T | undefined;
 
-  public get<T = any>(key: string | Object,prefix?:string): T | undefined {
+  public get<T = any>(key: string | Object, prefix?: string): T | undefined {
     const logger = Log4js.getLogger('ioc-container');
-    if(typeof key == 'string'){
-      const res = this.map.get(key) as T | undefined; 
-      if(res == undefined){
-        logger.warn('IoC容器中未找到实例id：' + key + '的实例对象，IoC容器将返回undefined，可能会引发未知错误。');
+    if (typeof key == 'string') {
+      const res = this.map.get(key) as T | undefined;
+      if (res == undefined) {
+        logger.warn(
+          'IoC容器中未找到实例id：' +
+            key +
+            '的实例对象，IoC容器将返回undefined，可能会引发未知错误。',
+        );
         return undefined;
       }
       logger.debug('IoC容器中找到实例id：' + key + '的实例对象。');
       return res;
-    }else if(prefix != undefined){
+    } else if (prefix != undefined) {
       const res = this.map.get(prefix + md5(key.toString())) as T | undefined;
-      if(res == undefined){
-        logger.warn('IoC容器中未找到实例id：' + prefix + md5(key.toString()) + '的实例对象，IoC容器将返回undefined，可能会引发未知错误。');
+      if (res == undefined) {
+        logger.warn(
+          'IoC容器中未找到实例id：' +
+            prefix +
+            md5(key.toString()) +
+            '的实例对象，IoC容器将返回undefined，可能会引发未知错误。',
+        );
         return undefined;
-      } 
-      logger.debug('IoC容器中找到实例id：' + prefix + md5(key.toString()) + '的实例对象。');
+      }
+      logger.debug(
+        'IoC容器中找到实例id：' + prefix + md5(key.toString()) + '的实例对象。',
+      );
       return res;
-    }else{
+    } else {
       //模糊搜索
-      logger.debug('正在使用模糊匹配模式从IoC容器中获取对象，性能较差,不推荐使用。');
+      logger.debug(
+        '正在使用模糊匹配模式从IoC容器中获取对象，性能较差,不推荐使用。',
+      );
       const keys = [...this.map.keys()];
-      const res = keys.filter(val => RegExp('/'+md5(key.toString())+'/').test(val));
-      if(res.length > 1) throw new Error('ioc容器中有多个符合该模糊匹配的内容');
+      const res = keys.filter((val) => {
+        return val.search(md5(key.toString())) > 0;
+      });
+      if (res.length > 1)
+        throw new Error('ioc容器中有多个符合该模糊匹配的内容');
       const val = this.map.get(res[0]) as T | undefined;
-      if(val == undefined){
-        logger.debug('IoC容器中未找到实例id：' + md5(key.toString()) + '的实例对象，IoC容器将返回undefined，可能会引发未知错误。');
+      if (val == undefined) {
+        logger.debug(
+          'IoC容器中未找到实例id：' +
+            md5(key.toString()) +
+            '的实例对象，IoC容器将返回undefined，可能会引发未知错误。',
+        );
         return undefined;
       }
       logger.debug('IoC容器中找到实例id：' + res[0] + '的实例对象。');
@@ -73,10 +108,23 @@ export class Container {
     }
   }
   //直接使用原型对象创建实例并保存至IoC容器中
-  public create(obj : Constructor , prefix?: string) {
+  public create(obj: Constructor, prefix?: string) {
     const params = getParamInstance(obj);
-    let instance = new obj(params);
-    this.bind(obj,instance,prefix);
+    const type = Reflect.getMetadata('classType', obj);
+    const instance: Provider = { type: type, instance: new obj(params) };
+    this.bind(obj, instance, prefix);
+  }
+  //获取所有在IoC容器中指定类型的方法
+  public getMethods(type: string) {
+    const logger = Log4js.getLogger('ioc-container');
+    const fn: Function[] = [];
+    this.map.forEach((value, key) => {
+      if (type === value.type) {
+        fn.push(value.instance as Function);
+        logger.debug(key + '已被类型：' + type + '获取。');
+      }
+    });
+    return fn;
   }
 }
 
@@ -93,7 +141,7 @@ export function createInstance<T>(
     type,
     instance: new constructor(...tobeInjected),
   };
-  container.bind(constructor, provider,'[class]');
+  container.bind(constructor, provider, '[class]');
   logger.debug('构造结束。');
   return provider.instance;
 }
@@ -109,7 +157,8 @@ export function module_core(target: Object) {
   if (container == undefined) throw new Error('IoC容器未创建');
   if (moduleOptions != undefined) {
     moduleOptions.imports?.forEach((dependency) => {
-      createInstance(container, dependency);
+      const val = {type:OUTER_METADATA,instance:dependency} as Provider;
+      container.bind(Object.getPrototypeOf(dependency).constructor,val,'[class]');
     });
     moduleOptions.providers?.forEach((dependency) => {
       createInstance(container, dependency);
@@ -123,19 +172,31 @@ export function module_core(target: Object) {
       );
       methodsNames.forEach((methodsName) => {
         const fn = p[methodsName];
-        const tobeInjected = getParamInstance(fn);
+        //todo 可能的错误
+        // const tobeInjected = getParamInstance(fn);
+        // console.log(tobeInjected);
         const meta = Reflect.getMetadata(METHOD_TYPE, fn);
         //调用闭包
-        //todo 改用async/await实现
-        function fnToCall() {
-          return fn.call(instance, ...tobeInjected);
+        //todo 改用async/await实现(未验证)
+         function fnToCall() {
+          fn(instance);
         }
         if (meta != undefined) {
-          container.bind(fn, {
-            type: meta,
-            instance: fnToCall,
-          },'[method]');
-          logger.info('方法名：'+methodsName+'方法类型：'+meta+' 已被IoC容器接受。');
+          container.bind(
+            fn,
+            {
+              type: meta,
+              instance: fnToCall,
+            },
+            '[method]',
+          );
+          logger.info(
+            '方法名：' +
+              methodsName +
+              '方法类型：' +
+              meta +
+              ' 已被IoC容器接受。',
+          );
         }
       });
     });
@@ -148,26 +209,35 @@ export function module_core(target: Object) {
 //实例化方法参数列表
 export function getParamInstance<T>(constructor: Constructor<T>) {
   const logger = Log4js.getLogger('ioc-container');
-  logger.debug('正在实例化方法'+constructor.name+'的参数列表');
+  logger.debug('正在实例化方法' + constructor.name + '的参数列表');
   const container = Container.container;
   if (container == undefined) throw new Error('IoC容器未创建');
   const param = Reflect.getMetadata(
     'design:paramtypes',
     constructor,
   ) as ParamType;
+  if (param === undefined) {
+    logger.debug('参数列表为空！');
+    return [] as any[];
+  }
   const tobeInjected = [] as any[];
   param?.forEach((dependency) => {
     //首先尝试从容器中找到需要的注入的实例
     const instance = container.get(dependency) as Provider<any>;
     if (instance != undefined) {
-      logger.debug('所需的参数'+dependency.name+'已存在于IoC容器中，将不会重复创建。');
+      logger.debug(
+        '所需的参数' + dependency.name + '已存在于IoC容器中，将不会重复创建。',
+      );
       tobeInjected.push(instance.instance);
       return;
     } else {
       //如果容器中没有，则递归创建
-      logger.debug('所需的参数'+dependency.name+'不在IoC容器中，将自动递归创建。');
+      logger.debug(
+        '所需的参数' + dependency.name + '不在IoC容器中，将自动递归创建。',
+      );
       tobeInjected.push(createInstance(container, dependency));
     }
+    logger.debug('参数构造完毕');
   });
   return tobeInjected;
 }
