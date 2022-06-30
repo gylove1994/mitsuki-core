@@ -3,6 +3,7 @@ import md5 from 'md5';
 import {
   CLASS_TYPE,
   Constructor,
+  INIT_METADATA,
   METHOD_TYPE,
   ModuleOptions,
   MODULES_OPTIONS,
@@ -52,9 +53,9 @@ export class Container {
   //直接使用键值读取内容
   public get<T = any>(key: string): T | undefined;
   //使用原型的md5值读取内容,若不提供prefix则会启用模糊匹配模式，性能会有所降低
-  public get<T = any>(key: Object, prefix?: string): T | undefined;
+  public get<T = any>(key: object, prefix?: string): T | undefined;
 
-  public get<T = any>(key: string | Object, prefix?: string): T | undefined {
+  public get<T = any>(key: string | object, prefix?: string): T | undefined {
     const logger = Log4js.getLogger('ioc-container');
     if (typeof key == 'string') {
       const res = this.map.get(key) as T | undefined;
@@ -126,6 +127,24 @@ export class Container {
     });
     return fn;
   }
+  public update<T>(obj: Constructor<T>, newVal: Provider<T>,prefix?:string){
+    const logger = Log4js.getLogger('ioc-container');
+    const keys =  [...this.map.keys()];
+    const res = keys.filter((val) => {
+      return val.search(md5(obj.toString())) > 0;
+    });
+    if (res.length > 1)
+      throw new Error('ioc容器中有多个符合该模糊匹配的内容');
+    if(res.length === 1){
+      this.map.delete(res[0]);
+      this.bind(obj,newVal,prefix);
+      logger.debug('更新完成');
+    }
+    if(res.length === 0){
+      this.bind(obj,newVal,prefix);
+      logger.debug('未找到更新内容，开始直接创建');
+    }
+  }
 }
 
 //用于递归创建依赖实例，并将依赖项的实例存入IoC容器中
@@ -178,8 +197,8 @@ export function module_core(target: Object) {
         const meta = Reflect.getMetadata(METHOD_TYPE, fn);
         //调用闭包
         //todo 改用async/await实现(未验证)
-         function fnToCall() {
-          fn(instance);
+         async function fnToCall() {
+          await fn(instance);
         }
         if (meta != undefined) {
           container.bind(
