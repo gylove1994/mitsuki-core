@@ -29,6 +29,7 @@ export const OUTER_METADATA = 'ioc:outer_class';
 export const MODULES_OPTIONS = 'moduleOptions';
 export const CLASS_TYPE = 'classType';
 export const METHOD_TYPE = 'methodType';
+export const PARAM_TYPE = 'paramType';
 export const DES_PARAM_TYPE = 'design:paramtypes';
 
 

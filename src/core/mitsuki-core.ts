@@ -1,9 +1,10 @@
+import { MessageType } from 'mirai-ts';
 import path from 'path';
 import fs from 'node:fs';
 import md5 from 'md5';
-import { Mirai, MiraiApiHttpSetting } from 'mirai-ts';
+import { Mirai, MiraiApiHttpSetting, EventType } from 'mirai-ts';
 import 'reflect-metadata';
-import { CLASS_TYPE, Constructor, INIT_METADATA, Provider } from './types';
+import { CLASS_TYPE, Constructor, INIT_METADATA, Provider, PARAM_TYPE } from './types';
 import { Container, module_core } from './ioc-container';
 
 // mitsuki 主类
@@ -13,13 +14,47 @@ export class Mitsuki {
   constructor(mirai: Mirai) {
     this.mirai = mirai;
   }
+  private setEvent<T extends "message" | keyof EventType.EventMap | MessageType.ChatMessage['type']>(eventName:T){
+    const con = Container.container;
+    this.mirai.on(eventName,(data)=>{
+      con?.update(Object.getPrototypeOf(data).constructor,{type:PARAM_TYPE,instance:data},'[data]');
+      const fn = con?.getMethods(eventName);
+      fn?.forEach(async fn => await fn());
+    })
+  }
   public ready() {
-    this.mirai.on('FriendMessage', (data) => {
-      //console.log(data);
-      const con = Container.container;
-      const fn = con?.getMethods('friendMsg');
-      fn?.forEach(fn => fn());
-    });
+    this.setEvent('BotGroupPermissionChangeEvent');
+    this.setEvent('BotInvitedJoinGroupRequestEvent');
+    this.setEvent('BotJoinGroupEvent');
+    this.setEvent('BotLeaveEventActive');
+    this.setEvent('BotLeaveEventKick');
+    this.setEvent('BotMuteEvent');
+    this.setEvent('BotOfflineEventActive');
+    this.setEvent('BotOfflineEventDropped');
+    this.setEvent('BotOfflineEventForce');
+    this.setEvent('BotOnlineEvent');
+    this.setEvent('BotReloginEvent');
+    this.setEvent('BotUnmuteEvent');
+    this.setEvent('FriendMessage');
+    this.setEvent('FriendRecallEvent');
+    this.setEvent('GroupAllowAnonymousChatEvent');
+    this.setEvent('GroupAllowConfessTalkEvent');
+    this.setEvent('GroupMessage');
+    this.setEvent('GroupMuteAllEvent');
+    this.setEvent('GroupNameChangeEvent');
+    this.setEvent('GroupRecallEvent');
+    this.setEvent('MemberCardChangeEvent');
+    this.setEvent('MemberJoinEvent');
+    this.setEvent('MemberJoinRequestEvent');
+    this.setEvent('MemberLeaveEventKick');
+    this.setEvent('MemberLeaveEventQuit');
+    this.setEvent('MemberMuteEvent');
+    this.setEvent('MemberPermissionChangeEvent');
+    this.setEvent('MemberSpecialTitleChangeEvent');
+    this.setEvent('MemberUnmuteEvent');
+    this.setEvent('NewFriendRequestEvent');
+    this.setEvent('NudgeEvent');
+    this.setEvent('message');
     this.mirai.listen();
   }
 }

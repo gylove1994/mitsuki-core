@@ -2,13 +2,48 @@ import { CLASS_TYPE, CONTROLLER_METADATA, methodDecoratorFunc, METHOD_TYPE, MODU
 import { ModuleOptions } from "./types";
 import 'reflect-metadata'
 import { Container } from "./ioc-container";
+import { EventType, MessageType } from "mirai-ts";
 
+//类装饰器
 export const Controller = createClassDecorator(CONTROLLER_METADATA);
 export const Injectable = createClassDecorator(PROVIDER_METADATA);
-export const friendMsg = createMethodDecorator('friendMsg');
-export const Msg = createParamDecorator('msg',(val,obj,key,index)=>{
-  
-})
+
+//方法参数器
+export const FriendMessage = createMethodDecorator('FriendMessage');
+export const GroupMessage = createMethodDecorator('GroupMessage');
+export const BotGroupPermissionChangeEvent = createMethodDecorator('BotGroupPermissionChangeEvent');
+export const BotInvitedJoinGroupRequestEvent = createMethodDecorator('BotInvitedJoinGroupRequestEvent');
+export const BotJoinGroupEvent = createMethodDecorator('BotJoinGroupEvent');
+export const BotLeaveEventActive = createMethodDecorator('BotLeaveEventActive');
+export const BotLeaveEventKick = createMethodDecorator('BotLeaveEventKick');
+export const BotMuteEvent = createMethodDecorator('BotMuteEvent');
+export const BotOfflineEventActive = createMethodDecorator('BotOfflineEventActive');
+export const BotOfflineEventDropped = createMethodDecorator('BotOfflineEventDropped');
+export const BotOfflineEventForce = createMethodDecorator('BotOfflineEventForce');
+export const BotOnlineEvent = createMethodDecorator('BotOnlineEvent');
+export const BotReloginEvent = createMethodDecorator('BotReloginEvent');
+export const BotUnmuteEvent = createMethodDecorator('BotUnmuteEvent');
+export const FriendRecallEvent = createMethodDecorator('FriendRecallEvent');
+export const GroupAllowAnonymousChatEvent = createMethodDecorator('GroupAllowAnonymousChatEvent');
+export const GroupAllowConfessTalkEvent = createMethodDecorator('GroupAllowConfessTalkEvent');
+export const GroupAllowMemberInviteEvent = createMethodDecorator('GroupAllowMemberInviteEvent');
+export const GroupEntranceAnnouncementChangeEvent = createMethodDecorator('GroupEntranceAnnouncementChangeEvent');
+export const GroupMuteAllEvent = createMethodDecorator('GroupMuteAllEvent');
+export const GroupNameChangeEvent = createMethodDecorator('GroupNameChangeEvent');
+export const GroupRecallEvent = createMethodDecorator('GroupRecallEvent');
+export const MemberCardChangeEvent = createMethodDecorator('MemberCardChangeEvent');
+export const MemberJoinEvent = createMethodDecorator('MemberJoinEvent');
+export const MemberJoinRequestEvent = createMethodDecorator('MemberJoinRequestEvent');
+export const MemberLeaveEventKick = createMethodDecorator('MemberLeaveEventKick');
+export const message = createMethodDecorator('message');
+export const MemberLeaveEventQuit = createMethodDecorator('MemberLeaveEventQuit');
+export const MemberMuteEvent = createMethodDecorator('MemberMuteEvent');
+export const MemberPermissionChangeEvent = createMethodDecorator('MemberPermissionChangeEvent');
+export const MemberUnmuteEvent = createMethodDecorator('MemberUnmuteEvent');
+export const NewFriendRequestEvent = createMethodDecorator('NewFriendRequestEvent');
+export const NudgeEvent = createMethodDecorator('NudgeEvent');
+export const TempMessage = createMethodDecorator('TempMessage');
+
 
 //模块装饰器，用于将模块信息绑定在模块的元信息上
 export function Module(moduleOptions?: ModuleOptions): ClassDecorator {
