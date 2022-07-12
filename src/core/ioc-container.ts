@@ -7,6 +7,7 @@ import {
   METHOD_TYPE,
   ModuleOptions,
   MODULES_OPTIONS,
+  ORIGIN_METHOD,
   OUTER_METADATA,
   ParamType,
   Provider,
@@ -58,17 +59,23 @@ export class Container {
   public get<T = any>(key: string | object, prefix?: string): T | undefined {
     const logger = Log4js.getLogger('ioc-container');
     if (typeof key == 'string') {
-      const res = this.map.get(key) as T | undefined;
-      if (res == undefined) {
-        logger.warn(
+      const keys = [...this.map.keys()];
+      const res = keys.filter((val) => {
+        return val.search(key) > 0;
+      });
+      if (res.length > 1)
+        throw new Error('ioc容器中有多个符合该模糊匹配的内容');
+      const val = this.map.get(res[0]) as T | undefined;
+      if (val == undefined) {
+        logger.debug(
           'IoC容器中未找到实例id：' +
-            key +
+            md5(key.toString()) +
             '的实例对象，IoC容器将返回undefined，可能会引发未知错误。',
         );
         return undefined;
       }
       logger.debug('IoC容器中找到实例id：' + key + '的实例对象。');
-      return res;
+      return val;
     } else if (prefix != undefined) {
       const res = this.map.get(prefix + md5(key.toString())) as T | undefined;
       if (res == undefined) {
@@ -109,8 +116,13 @@ export class Container {
     }
   }
   //直接使用原型对象创建实例并保存至IoC容器中
-  public create(obj: Constructor, prefix?: string) {
-    const params = getParamInstance(obj);
+  public create(obj: Constructor, prefix: string, ...param:Object[]) {
+    let params;
+    if(param == undefined){
+      params = getParamInstance(obj);
+    }else{
+      params = param;
+    }
     const type = Reflect.getMetadata('classType', obj);
     const instance: Provider = { type: type, instance: new obj(params) };
     this.bind(obj, instance, prefix);
@@ -127,22 +139,40 @@ export class Container {
     });
     return fn;
   }
-  public update<T>(obj: Constructor<T>, newVal: Provider<T>,prefix?:string){
+  public update<T>(newVal: Provider<T>,searchKey:string):void;
+
+  public update<T>(newVal: Provider<T>,obj:Constructor<T>,prefix?:string):void;
+
+  public update<T>(newVal: Provider<T>,obj:Constructor<T> | string,prefix?:string){
     const logger = Log4js.getLogger('ioc-container');
-    const keys =  [...this.map.keys()];
-    const res = keys.filter((val) => {
-      return val.search(md5(obj.toString())) > 0;
-    });
+    let res;
+    if(typeof obj === 'string'){
+      const keys =  [...this.map.keys()];
+      res = keys.filter((val) => {
+        return val.search(obj) > 0;
+      });
+    }else{
+      const keys =  [...this.map.keys()];
+      res = keys.filter((val) => {
+        return val.search(md5(obj.toString())) > 0;
+      });
+    }
     if (res.length > 1)
       throw new Error('ioc容器中有多个符合该模糊匹配的内容');
-    if(res.length === 1){
+    if(res.length === 1 && typeof obj === 'function'){
       this.map.delete(res[0]);
       this.bind(obj,newVal,prefix);
       logger.debug('更新完成');
+    }else if(res.length === 1 && typeof obj === 'string'){
+      this.map.delete(res[0]);
+      this.bind(res[0],newVal);
+      logger.debug('更新完成');
     }
-    if(res.length === 0){
+    if(res.length === 0 && typeof obj === 'function'){
       this.bind(obj,newVal,prefix);
       logger.debug('未找到更新内容，开始直接创建');
+    }else if(res.length === 0 && typeof obj === 'string'){
+      logger.debug('未找到所指定的更新内容' + '，将不会对内容进行更新，可能会引发未知错误。');
     }
   }
 }
@@ -191,6 +221,7 @@ export function module_core(target: Object) {
       );
       methodsNames.forEach((methodsName) => {
         const fn = p[methodsName];
+        
         //todo 可能的错误
         // const tobeInjected = getParamInstance(fn);
         // console.log(tobeInjected);
@@ -202,7 +233,7 @@ export function module_core(target: Object) {
         }
         if (meta != undefined) {
           container.bind(
-            fn,
+            Reflect.getMetadata(ORIGIN_METHOD,fn),
             {
               type: meta,
               instance: fnToCall,

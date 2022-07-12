@@ -1,3 +1,5 @@
+import { EventType, MessageType } from "mirai-ts"
+
 export type ModuleOptions = {
   imports?:object[],
   controllers?:Constructor[],
@@ -31,6 +33,12 @@ export const CLASS_TYPE = 'classType';
 export const METHOD_TYPE = 'methodType';
 export const PARAM_TYPE = 'paramType';
 export const DES_PARAM_TYPE = 'design:paramtypes';
+export const ORIGIN_METHOD = 'originMethod';
 
-
+export abstract class msgData<T extends EventType.Event | MessageType.ChatMessage>{
+  public data:T;
+  constructor(data:T){
+    this.data = data;
+  }
+}
 

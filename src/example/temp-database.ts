@@ -1,4 +1,3 @@
-import { MiraiApiHttpSetting } from 'mirai-ts';
 import { Injectable } from '../core/decorators';
 @Injectable()
 export class TempDatabase{

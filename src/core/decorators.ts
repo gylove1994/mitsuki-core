@@ -1,4 +1,4 @@
-import { CLASS_TYPE, CONTROLLER_METADATA, methodDecoratorFunc, METHOD_TYPE, MODULES_OPTIONS, paramDecoratorFunc, PARAM_METADATA, Provider, PROVIDER_METADATA } from "./types";
+import { CLASS_TYPE, CONTROLLER_METADATA, methodDecoratorFunc, METHOD_TYPE, MODULES_OPTIONS, ORIGIN_METHOD, paramDecoratorFunc, PARAM_METADATA, Provider, PROVIDER_METADATA } from "./types";
 import { ModuleOptions } from "./types";
 import 'reflect-metadata'
 import { Container } from "./ioc-container";
@@ -63,7 +63,7 @@ export function createParamDecorator(val:string,fn?:paramDecoratorFunc){
 
 //用于生成只用于添加标记的方法装饰器
 export function createMethodDecorator(val: string,fnc?:methodDecoratorFunc) {
-  return (): MethodDecorator => (target, name, descriptor: any) => {
+  return (): MethodDecorator => (target, name, descriptor: PropertyDescriptor) => {
     const fn = descriptor.value;
     descriptor.value = function(instance:any){
       const params: any[] | undefined = Reflect.getMetadata(
@@ -81,7 +81,10 @@ export function createMethodDecorator(val: string,fnc?:methodDecoratorFunc) {
       if(fnc !== undefined) fnc(val,target,name,descriptor);
       fn.call(instance,...tobeInjected);
     }
+    //将元信息添加到原函数
     Reflect.defineMetadata(METHOD_TYPE,val,descriptor.value);
+    //将原函数添加到代理函数的信息上
+    Reflect.defineMetadata(ORIGIN_METHOD,fn,descriptor.value);
   };
 }
 

@@ -1,16 +1,25 @@
-import { MessageType } from 'mirai-ts';
+import { FriendMessageData, GroupMessageData } from './../core/mitsuki-core';
 import { FirstService } from './first-service';
-import { Controller, FriendMessage, GroupMessage } from "../core/decorators";
+import {
+  BotOnlineEvent,
+  Controller,
+  FriendMessage,
+  GroupMessage,
+} from '../core/decorators';
 
 @Controller()
-export class FirstController{
-  constructor(private readonly firstService:FirstService){}
+export class FirstController {
+  constructor(private readonly firstService: FirstService) {}
   @FriendMessage()
-  public async helloMitsuki(msg:MessageType.FriendMessage){
-    this.firstService.helloMitsuki(msg);
+  public async helloMitsuki(msg: FriendMessageData) {
+    await this.firstService.helloMitsuki(msg.data);
   }
   @GroupMessage()
-  public async saveToTempDatabase(msg:MessageType.GroupMessage){
-    this.firstService.show(msg);
+  public async saveToTempDatabase(msg: GroupMessageData) {
+    await this.firstService.saveToTempDatabase(msg.data);
+  }
+  @BotOnlineEvent()
+  public async online() {
+    console.log('bot上线啦！！！！！');
   }
 }
