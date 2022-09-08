@@ -1,34 +1,45 @@
 {
-  "name": "mitsuki-core",
-  "version": "0.0.1",
+  "name": "mitsuki",
+  "version": "1.0.0",
   "main": "index.js",
-  "license": "AGPL-3.0-or-later",
+  "author": "gylove1994",
+  "license": "MIT",
   "scripts": {
-    "start": "nodemon src/example/index.ts",
-    "test-d": "nodemon src/test/test.ts",
-    "test": "jest",
-    "test-c": "jest --coverage",
-    "test-w": "jest --watchAll"
-  },
-  "dependencies": {
-    "log4js": "^6.4.6",
-    "md5": "^2.3.0",
-    "mirai-ts": "^2.2.1",
-    "reflect-metadata": "^0.1.13"
+    "bot": "nodemon ./index.ts",
+    "test": "jest --detectOpenHandles",
+    "test-c" : "jest --coverage --detectOpenHandles"
   },
   "devDependencies": {
-    "@types/jest": "^27.4.1",
+    "@types/ejs": "^3.1.1",
+    "@types/inquirer": "^9.0.1",
+    "@types/jest": "^29.0.0",
     "@types/md5": "^2.3.2",
-    "@typescript-eslint/eslint-plugin": "^5.21.0",
-    "@typescript-eslint/parser": "^5.21.0",
-    "eslint": "^8.14.0",
+    "@typescript-eslint/eslint-plugin": "^5.32.0",
+    "@typescript-eslint/parser": "^5.32.0",
+    "eslint": "^8.21.0",
     "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.0.0",
-    "jest": "^27.0.0",
-    "nodemon": "^2.0.15",
-    "prettier": "^2.6.2",
-    "ts-jest": "^27.1.4",
-    "ts-node": "^10.7.0",
-    "typescript": "^4.6.3"
+    "eslint-plugin-prettier": "^4.2.1",
+    "jest": "^29.0.1",
+    "nodemon": "^2.0.19",
+    "prettier": "^2.7.1",
+    "ts-jest": "^28.0.8",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.2"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "chalk": "^4.1.2",
+    "commander": "^9.4.0",
+    "ejs": "^3.1.8",
+    "inquirer": "^8.0.0",
+    "logform": "^2.4.2",
+    "md5": "^2.3.0",
+    "mirai-ts": "^2.4.0",
+    "pg": "^8.8.0",
+    "puppeteer": "^17.0.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.5.6",
+    "typeorm": "^0.3.7",
+    "winston": "^3.8.1"
   }
 }

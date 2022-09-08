@@ -1,0 +1,1 @@
+import './mitsuki-bot/index';

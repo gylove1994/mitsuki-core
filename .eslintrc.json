@@ -1,6 +1,27 @@
 {
-  "plugins": ["prettier"],
+  //指定该配置文件为该项目的唯一配置文件
+  "root": true,
+  "env": {
+      "browser": false,
+      "es2021": true
+  },
+  "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:prettier/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+  },
+  "plugins": [
+      "@typescript-eslint"
+  ],
   "rules": {
-    "prettier/prettier": "error"
+      "prettier/prettier": ["error", {"printWidth" : 120}],
+      "@typescript-eslint/no-explicit-any" : "off",
+      "@typescript-eslint/no-empty-function" : "off",
+      "@typescript-eslint/no-unused-vars" : "off"
   }
 }

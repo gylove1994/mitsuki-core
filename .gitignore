@@ -1,4 +1,7 @@
 node_modules
-coverage
+mcl
+build
 .vscode
+package/image/img-templates
+package/image/imgs
 .DS_Store
