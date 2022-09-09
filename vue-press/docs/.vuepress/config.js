@@ -26,5 +26,6 @@ module.exports = {
     displayAllHeaders: true,
     lastUpdated: 'Last Updated', // string | boolean
     smoothScroll: true,
+    base: '/mitsuki-core/'
   }
 }
