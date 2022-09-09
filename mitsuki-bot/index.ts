@@ -1,5 +1,5 @@
 import { Container } from './../package/core/container';
-import { api } from './api-setting';
+import { api } from '../api-setting';
 import { MitsukiFactory } from '../package/core/mitsuki-factory';
 import { BaseModule } from './base-module/base.module';
 

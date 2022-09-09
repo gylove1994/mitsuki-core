@@ -8,10 +8,10 @@ module.exports = {
       { 
         text: '教程',
         items: [
-          { text: '关于Mitsuki-Core', link: '/about' },
-          { text: '介绍', link: '/language/japanese/' },
-          { text: '快速上手', link: '/language/japanese/' },
-          { text: '理解Mitsuki-Core', link: '/language/japanese/' },
+          { text: '开始之前', link: '/beforeStart' },
+          { text: '介绍', link: '/introduction' },
+          { text: '快速上手', link: '/handsOn' },
+          { text: '理解Mitsuki-Core', link: '/understand' },
           { text: '开发指南', link: '/language/japanese/' },
         ],
       },
@@ -19,8 +19,9 @@ module.exports = {
     ],
     sidebar: [
       ['/','首页'],
-      '/page-a',
-      // ['/page-b','特性']
+      '/beforeStart',
+      '/introduction',
+      '/handsOn'
     ],
     displayAllHeaders: true,
     lastUpdated: 'Last Updated', // string | boolean

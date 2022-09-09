@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { api } from '../../mitsuki-bot/api-setting';
+import { api } from '../../api-setting';
 import { Logger, LoggerLike } from '../common/logger.adapter';
 import { EventEmitter } from 'events';
 import { Injectable } from '../core/decorator';

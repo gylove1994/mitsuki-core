@@ -1,54 +1,3 @@
-
-
-# Mitsuki-bot v0.9.5(pre-release)说明文档
-
-## 介绍
-
-<div align=center><img src="https://s2.loli.net/2022/01/23/I7UP6oLlT1azDXi.jpg" alt="psc" style="zoom:50%;" /></div>
-
-​		Mitsuki-bot是基于[mirai](https://github.com/mamoe/mirai)及[mirai-ts](https://github.com/YunYouJun/mirai-ts)构建的qq消息机器人，其名字取自《巧克甜恋2》中的百々瀬 みつき(Momose Mitsuki)。该项目其主要目的是构建了一个渐进式，可靠的具有清晰结构的qq机器人框架。
-
-## 开源许可证
-
-​		由于[mirai](https://github.com/mamoe/mirai)及[mirai-ts](https://github.com/YunYouJun/mirai-ts)所使用的许可证为**AGPL-3.0 License**，故本项目也使用[AGPL-3.0 License](https://github.com/gylove1994/mitsuki-bot/blob/master/LICENSE)开源许可证，请遵守相关的规范。
-
-## 哲学
-
-​		近年来，由于 Node.js、JavaScript 已经成为 web 前端和后端应用程序的“通用开发语言”。这也促成了诸如 mirai-ts等优秀项目的出现，他们实现了在node环境中编写QQ机器人的第一步。
-
-​		然而，尽管 Node 拥有大量优秀的软件库、辅助程序和工具。但是这些软件库、辅助程序和工具在每一个独立的qq机器人中都需要做一次适配工作，这就使得大量开发者将会花费大量冗余的时间在一些相同的地方。而且由于实现方式的不同，对不同的qq机器人项目中的代码进行复用也会变得十分困难，这也导致了使用nodejs开发qq机器人的社区活跃度要远低于java，python等语言，尽管js拥有着世界上活跃度最高的社区。而Mitsuki-core的出现将有效地解决我们所面对的主要问题：即 **架构**。
-
-​		Mitsuki-core 提供了一个开箱即用的应用程序体系结构，允许开发者及其团队创建高度可测试、可扩展、松散耦合且易于维护的QQ机器人应用实例。这种架构深受 Angular以及nodejs 的启发。
-
-## 安装
-
-### 1.安装mcl并配置mirai-api-http
-
-​	相关内容请查看https://github.com/mamoe/mirai/blob/dev/docs/ConsoleTerminal.md
-
-### 2.安装mitsuki
-
-​	现阶段仅能通过克隆git库的形式进行安装（后续将提供npm及mitsuki-cli的安装方式）：
-
-```shell
-$ git clone https://github.com/gylove1994/mitsuki-core.git mitsuki
-$ cd mitsuki
-$ yarn
-$ yarn run start
-```
-
-## 迈出伟大的第一步
-
-​		如果你没有使用过angular或者nestjs等框架，直接理解以下的概念可能会是痛苦的，但是一旦了解了这些概念，你会发现这些内容将会对你产生巨大的正面的影响。无论如何，试着迈出这伟大的第一步吧！
-
-### 1.Module（模块）
-
-​		模块是一个用`@Module()`装饰器注解的类。`@Module()`装饰器提供了**mitsuki**用来组织qq机器人结构的元数据。
-
-![Modules_1](https://s2.loli.net/2022/07/02/2BMqDvHcTesywk8.png)
-
-​		每个由mitsuki构建的qq机器人至少有一个模块，即**根模块**。**根模块是 mitsuki 用来构建整个应用**的起点——mitsuki用来解决模块（module）和提供者（provider）关系和依赖关系的内部数据结构。虽然理论上非常小的qq机器人可能只有根模块（如同示例一样），但这不是常见的情况。我**强烈**建议将模块作为组织代码的有效方式。因此，对于大多数qq机器人，最终的架构将采用多个模块，每个模块都封装了一组密切相关的**功能**。功能模块只是用于组织与特定功能相关的一系列代码，这样做可以使代码变得井井有条的同时建立清晰的边界。尤其是随着应用程序变得越来越大和复杂时，这有助于管理复杂性并使用[SOLID](https://en.wikipedia.org/wiki/SOLID)原则进行开发。
-
 #### 开放与封闭及单例模式
 
 ​		在v0.9中，任意导入mitsuki模块中的依赖项的作用域是所有受mitsuki容器所共享，这会导致所有模块都可以直接修改由另外模块创建的内容。虽然这为一部分场景提供了方便，但是这种方式显著的增加了模块间的耦合性，使模块与模块之间的界限变得模糊，并最终可能会使mitsuki-bot实例在运行时发生无法预计的错误。所以在v1.0正式版本中，我们调整了依赖的作用域范围，将依赖的默认作用域限制在了每个模块内部，并通过元信息注解的方式导入和导出，这显著提升了模块的安全性。
@@ -117,13 +66,17 @@ public static importRepository(...entity: Constructor[]): DynamicModule {
   }
 ```
 
-### 2.Controller（控制器）
+### 控制器
 
-​	控制器负责处理**事件**并做出相对应的处理。
+控制器负责处理**事件**并做出相对应的处理。
 
 ![Controllers_1](https://docs.nestjs.com/assets/Controllers_1.png)
 
 ​		控制器的目的是负责处理**事件**并对事件做出相对应的处理。为了创建一个基本的控制器，我们使用类和**装饰器**。装饰器将类与所需的元数据相关联，并使mitsuki能将对应的处理映射到与之对应的控制器中。
+
+::: tip
+下面示例中涉及类较多有关于管道的内容，如果对于管道概念不了解可以先暂时跳过。
+:::
 
 ​		在下面的示例中，我们将使用`@Controller()`装饰器，它是定义基本控制器所**必需的。**
 
@@ -190,7 +143,9 @@ export class TextPipe implements MitsukiPipe {
 
 ​		方法参数装饰器`@Inject()`是最为通用的方法参数装饰器，他接收一个特殊的对象。这个对象一个必填参数：ProviderName（注意大写）则是指定的存取令牌。通过这个存储令牌，可以获取任何已知的在作用域范围内 的provider。
 
+::: tip
 ​		方法参数装饰器`@Inject()`还有更奇怪的用法，比如为其直接赋值的useValue方法，以及不那么奇怪的管道，他们都是可选的。useValue这种方法通常与拦截器共同使用，在最后时刻，改变指定项的值。（比如内置的`@Data()`装饰器的实现就是基于useValue。但是这种奇怪的方式可能会在将来的更新中被移除，抑或着是将其以一种新的形式开放。）
+:::
 
 #### 示例（root.controller.ts）
 
@@ -206,7 +161,7 @@ export class RootController {
 
 ```
 
-### 3.providers（提供者）
+### 提供者
 
 ​		**提供者**是mitsuki的一个基本概念。许多基本的类是提供一个服务或者一个功能的类——服务、存储库、工厂、助手、管道等等，而在这里我们将这些类统称为提供者。
 
@@ -214,7 +169,7 @@ export class RootController {
 
 ![Components_1](https://nestjs.bootcss.com/assets/Components_1.png)
 
-​		在下面的示例中，我们将会使用`@Injectable()`  装饰器，它是定义基本提供者所**必需的。**以及两个提供者与两个提供者之间的依赖关系。
+​		在下面的示例中，我们将会使用`@Injectable()`  装饰器，它是定义基本提供者所**必需的**。
 
 #### provider的构建方式
 

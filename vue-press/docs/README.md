@@ -4,7 +4,7 @@ heroImage: assets/img/logo.jpg
 heroText: Mitsuki-Core
 tagline: 可能是最适合前端工程师与Nodejs全栈开发人员的渐进式QQ机器人框架
 actionText: 快速上手 →
-actionLink: /page-a
+actionLink: /beforeStart
 features:
 - title: 控制反转与注解式编程
   details: Mitsuki-Core 完美利用了TypeScript所提供的装饰器语法及reflect-metadata库所提供的元信息编程的能力，构建了一套以依赖注入为核心的运行时系统。
