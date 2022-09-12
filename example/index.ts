@@ -1,13 +1,9 @@
-import winston from 'winston';
-import { format } from 'logform';
-import { Logger } from '../package/common/logger.adapter';
+import { api } from '../api-setting';
 import { MitsukiFactory } from '../package/core/mitsuki-factory';
-import { api } from './api-setting';
-import { BaseModule } from './base.module';
-import chalk from 'chalk';
+import { RootModule } from './root.module';
 
 async function boot() {
-  const app = await MitsukiFactory.create(BaseModule, api.apiSetting);
+  const app = await MitsukiFactory.create(RootModule, api.apiSetting);
   await app.listen();
 }
 

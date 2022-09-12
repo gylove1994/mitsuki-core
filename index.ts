@@ -1,3 +1,2 @@
-// import './mitsuki-bot/index';
-
-import './test_1/index';
+// 设置成mitsuki-core实例的入口文件地址
+import './example/index';

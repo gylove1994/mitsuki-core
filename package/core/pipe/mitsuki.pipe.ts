@@ -1,5 +1,5 @@
 import { Logger } from '../../common/logger.adapter';
-import { GroupMassage } from '../../../example/group-massage.entity';
+import { GroupMassage } from '../../../mitsuki-bot/example/group-massage.entity';
 import { Repository } from 'typeorm';
 import { MitsukiPipe } from '../type/types';
 import { MessageType } from 'mirai-ts';
