@@ -5,3 +5,4 @@ build
 package/image/img-templates
 package/image/imgs
 .DS_Store
+vue-press/docs/.vuepress/dist

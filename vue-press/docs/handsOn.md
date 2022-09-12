@@ -17,7 +17,7 @@ Mitsuki-Core 是一个基于 TypeScript 构建的开发平台。它包括：
 因为我们深知，成千上万的node库将会给开发QQ机器人带来无比的便利。
 
 ::: tip
-要试用包含本指南中代码片段的可工作范例，请查看仓库中example文件夹
+要试用包含本指南中代码片段的可工作范例，请查看Mitsuki-Bot实例。
 :::
 
 ## Mitsuki-Core 应用：知识要点
@@ -144,3 +144,151 @@ RxJS 中解决异步事件管理的基本概念有：
 ::: tip
 有关Rxjs的更多信息，请参见[Rxjs官网](https://rxjs.tech/guide/overview)
 :::
+
+#### Rxjs 与 Mitsuki-Core 的关系
+
+在Mitsuki-Core中，我们将所有的事件都化为了可观察对象的形式存储在Mitsuki-Core的公共实例库中，供所有模组使用。
+
+通过这种方式，使得我们可以在操作消息流的时候，即可以利用rxjs内置的操作符，来简化一些复杂的流控，以及增加程序的可读性。
+
+具体内容的实现，请参阅：Mitsuki-bot 示例。
+
+## 环境搭建
+
+由于项目还在早期阶段，所以现在想要体验Mitsuki-Core的内容，只能通过克隆仓库的形式进行体验（后期将陆续推出npm包，cli等安装方式）：
+
+``` git
+//在控制台中输入以下代码：
+git clone git@github.com:gylove1994/mitsuki-core.git
+cd ./mitsuki-core
+yarn
+```
+
+之后我们还需要调整项目根目录的`index.ts`文件，使该文件能够成功引入由您自己创建的Mitsuki-Core实例的入口文件，从而使得项目能够使用指令：`yarn run bot`成功启动。
+
+::: tip
+对于使用npm包管理器的用户，可以遵循npm的形式，进行配置。
+:::
+
+## 试一试
+
+### 开始之前
+
+我们需要搭建Mirai-api-http环境，具体方式请参阅：[mirai](https://github.com/project-mirai/mirai-api-http)以及[mirai-ts如何使用](https://github.com/YunYouJun/mirai-ts#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8)。
+
+::: tip
+为了与下文对应，我们建议您将配置好的setting导入至一个名为`api.apiSetting`的对象中并将其全局导出，以方便使用。
+:::
+
+#### setting示例
+
+``` typescript
+class ApiSetting {
+  public apiSetting: MiraiApiHttpSetting;
+  public ormSetting?: DataSourceOptions;
+  public expTime: number;
+  constructor(api: MiraiApiHttpSetting, ormSetting?: DataSourceOptions, expTime?: number) {
+    this.apiSetting = api;
+    this.ormSetting = ormSetting ? ormSetting : undefined;
+    this.expTime = expTime ? expTime : 30000;
+  }
+}
+
+export const api = new ApiSetting(
+  {
+    adapters: ['http', 'ws'],
+    enableVerify: false,
+    verifyKey: '1145141919',
+    debug: true,
+    singleMode: true,
+    cacheSize: 4096,
+    adapterSettings: {
+      http: {
+        port: 8081,
+        host: 'localhost',
+        cors: ['*'],
+      },
+      ws: {
+        port: 8080,
+        host: 'localhost',
+      },
+    },
+  },
+);
+```
+
+::: danger
+
+注意：这个文件根据每个人的mirai配置不同将为有一定的变化，请不要直接使用！！！！！
+
+:::
+
+
+### 一.创建根模块
+
+创建一个文件，并将名字取为`root.module.ts`，并将如下代码粘贴至该文件中：
+
+``` typescript
+@Module({
+  imports: [],
+  controller: [],
+  provider: [],
+  exports: [],
+})
+export class RootModule {}
+```
+
+这样，一个没有包含任意功能的（根）模块，就创建完毕了，接下来我们将需要把这个模块导入到Mitsuki静态工厂中用于创建Mitsuki实例对象。
+
+### 二.创建Mitsuki实例对象
+
+创建一个文件，并将名字取为`index.ts`，并将如下代码粘贴至该文件中：
+
+``` typescript
+async function boot() {
+  const app = await MitsukiFactory.create(RootModule, api.apiSetting);
+  await app.listen();
+}
+
+boot();
+```
+
+这样，一个最基本的Mitsuki-Core实例对象就创建完成了，如果这个时候启动Mitsuki-Core的话，就可以看到从控制台发出的
+“MitsukiApplication 成功启动”的字样了，可是这样子的Mitsuki-Core 实例对象默认没有任何功能，所以接下来我们就要为他添加一个最基础的功能。
+
+### 三.创建controller
+
+创建一个文件，并将名字取为`root.controller.ts`，并将如下代码粘贴至该文件中：
+
+``` typescript
+@Controller()
+export class RootController {
+  @Handler('GroupMessage')
+  public async testGroupMessage() {
+    console.log('helloWorld!');
+  }
+}
+```
+在创建完`root.controller.ts`文件后，我们需要手动将这个文件导入到我们的根模块“RootModule”中，以让Mitsuki-Core的运行时系统感知到这个控制器。
+
+现在我们回到文件`root.module.ts`中，更新如高亮的代码：
+
+``` typescript {3}
+@Module({
+  imports: [],
+  controller: [RootController],
+  provider: [],
+  exports: [],
+})
+export class RootModule {}
+```
+
+现在再次启动程序，一个最简单功能的bot就已经搭建成功了，这个bot会在每次收到群消息的时候，向程序的控制台发送一个“helloWorld!”的字符串。
+
+**恭喜！你已经完成了伟大的第一步，接下来就是准备给bot添加更多功能了。**
+
+::: tip
+有关功能性及内置模块的使用，请查阅开发指南一栏。
+::: 
+
+

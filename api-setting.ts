@@ -3,11 +3,11 @@ import { MiraiApiHttpSetting } from 'mirai-ts';
 
 class ApiSetting {
   public apiSetting: MiraiApiHttpSetting;
-  public ormSetting: DataSourceOptions;
+  public ormSetting?: DataSourceOptions;
   public expTime: number;
-  constructor(api: MiraiApiHttpSetting, ormSetting: DataSourceOptions, expTime?: number) {
+  constructor(api: MiraiApiHttpSetting, ormSetting?: DataSourceOptions, expTime?: number) {
     this.apiSetting = api;
-    this.ormSetting = ormSetting;
+    this.ormSetting = ormSetting ? ormSetting : undefined;
     this.expTime = expTime ? expTime : 30000;
   }
 }

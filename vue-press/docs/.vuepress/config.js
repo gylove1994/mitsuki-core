@@ -15,7 +15,7 @@ module.exports = {
           { text: '开发指南', link: '/language/japanese/' },
         ],
       },
-      { text: '视频教程', link: 'https://google.com' },
+      { text: '视频教程', link: 'https://www.bilibili.com/video/BV1SG411G7oH' },
     ],
     sidebar: [
       ['/','首页'],
