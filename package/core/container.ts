@@ -104,6 +104,7 @@ export class Container {
     });
   }
   //实例化provider
+  //todo 解析Provider
   public static async instanceProvider(
     container: Container,
     constructor: Constructor,
@@ -283,10 +284,10 @@ export class Container {
         }
         //从依赖库中获得依赖
         // if (providerNames && providerNames.concat(keys).find((val) => param.name == val)) {
-          Container.logger.info(
-            `即将准备从依赖库"${container.containerName}"中获取实例:${param.name}，此行为可能因为超时而失败`,
-          );
-          return await container.getInstance(param.name);
+        Container.logger.info(
+          `即将准备从依赖库"${container.containerName}"中获取实例:${param.name}，此行为可能因为超时而失败`,
+        );
+        return await container.getInstance(param.name);
         // } else {
         //   Container.logger.error(`所需要的依赖${param.name}在依赖库中不存在，请将其添加至该模组的provider`);
         //   throw new Error(`所需要的依赖${param.name}在依赖库中不存在，请将其添加至该模组的provider`);
@@ -361,9 +362,9 @@ export class Container {
     const rest = modules ? await Promise.all(modules) : [];
     Container.logger.info(`${rootModule.name} 的子模块导入完成`);
     //生命周期钩子providersImported触发
-    this.hooker.emit('providersImported', container);
+    this.hooker.emit('providersImported', container, mirai);
     if ((rootModule as any).providersImported) {
-      await (rootModule as any).providersImported(container);
+      await (rootModule as any).providersImported(container, mirai);
     }
     //构建provider
     Container.logger.info(`模块：${rootModule.name} 将开始实例化provider`);

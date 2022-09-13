@@ -1,13 +1,16 @@
-import { createParamInterceptor, Data } from './../core/decorator';
+import { createParamDecorator, createParamInterceptor, Data } from './../core/decorator';
 import { ParseResult } from './command.type';
 import { MessageType } from 'mirai-ts';
 import { Command, CommanderError } from 'commander';
 import { Observable, Subscription } from 'rxjs';
 import { MitsukiPipe } from '../core/type/types';
-import { CommandGroup, CommandOutput } from './command.decorator';
 import { Inject, Injectable } from '../core/decorator';
 import { Container } from '../core/container';
 import { Logger, LoggerLike } from '../common/logger.adapter';
+
+export const CommandGroup = createParamDecorator('[CommandModule]command');
+
+export const CommandOutput = createParamDecorator('[CommandModule]output');
 
 @Injectable()
 export class CommandArgsPipe implements MitsukiPipe {
@@ -51,12 +54,16 @@ export class ParseCommandPipe implements MitsukiPipe {
           actionCommand.data = undefined;
         }
       });
-      await this.command.parseAsync(data.commandArgs.split(' '), { from: 'user' });
+      if (data.commandArgs == '') {
+        await this.command.parseAsync(['-h'], { from: 'user' });
+      } else {
+        await this.command.parseAsync(data.commandArgs.split(' '), { from: 'user' });
+      }
       return { status: 'success' };
     } catch (err: any) {
       if (err instanceof CommanderError) {
         subscribe?.unsubscribe();
-        if (err.code == 'commander.help') {
+        if (err.code == 'commander.help' || err.code == 'commander.helpDisplayed') {
           return {
             status: 'success',
           };
@@ -73,3 +80,7 @@ export class ParseCommandPipe implements MitsukiPipe {
     }
   }
 }
+
+export const ParseCommand = () => Data(ParseCommandPipe);
+
+export const CommandArgs = createParamInterceptor('[commandModule:commandArgs]', CommandArgsPipe);

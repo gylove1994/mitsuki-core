@@ -5,8 +5,8 @@ import { MessageType } from 'mirai-ts';
 import { filter, map, Subscription, Observable } from 'rxjs';
 import { Controller, Data, Handler, Inject } from '../../package/core/decorator';
 import { isCommand } from '../../package/command/command.rxpipe';
-import { CommandOutput, ParseCommand } from '../../package/command/command.decorator';
 import { Whitelist } from './whitelist.rxpipe';
+import { ParseCommand } from '../../package/command/command.mipipe';
 
 @Controller()
 export class CommandController {
@@ -15,6 +15,7 @@ export class CommandController {
   public async testCommand(@ParseCommand() res: ParseResult, @Data() data: MessageType.ChatMessage) {
     if (res.status == 'failure') {
       data.reply(res.error.message);
+      console.log(res.error.code);
     } else if (res.status == 'unknown') {
       this.logger.error(res.error);
     }

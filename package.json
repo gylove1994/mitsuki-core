@@ -6,6 +6,8 @@
   "license": "MIT",
   "scripts": {
     "bot": "nodemon ./index.ts",
+    "pg": "nodemon ./playground/index.ts",
+    "example": "nodemon ./example/index.ts",
     "test": "jest --detectOpenHandles",
     "test-c" : "jest --coverage --detectOpenHandles",
     "tsc": "tsc ./package/index"

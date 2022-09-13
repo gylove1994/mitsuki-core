@@ -50,8 +50,8 @@ export class ImgService {
   public async getPageImgFromEjs<T extends ejs.Data | undefined>(filePathWithName: string, data?: T) {
     const renderedString = await ejs.renderFile(filePathWithName, data, undefined);
     const imgName = md5(renderedString);
-    this.logger.info(`html文件已成功渲染在：${path.join(__dirname)}/img-templates/${imgName}.html`);
     fs.writeFileSync(`${path.join(__dirname)}/img-templates/html/${imgName}.html`, renderedString, { flag: 'w+' });
+    this.logger.info(`html文件已成功渲染在：${path.join(__dirname)}/img-templates/${imgName}.html`);
     const browser = await this.getBrowser();
     const page = await browser.newPage();
     await page.goto(`file://${path.join(__dirname)}/img-templates/html/${imgName}.html`);

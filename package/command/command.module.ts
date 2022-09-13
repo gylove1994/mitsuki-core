@@ -1,11 +1,11 @@
 import { CommandController } from '../../mitsuki-bot/base-module/command.controller';
-import { Constructor } from '../core/type/types';
+import { Constructor, Provider } from '../core/type/types';
 import { Container } from '../core/container';
 import { Command, Option } from 'commander';
 import { Logger } from '../common/logger.adapter';
 import { EventEmitter } from 'events';
 import { LoggerLike } from '../common/logger.adapter';
-import { fromEvent, Observable } from 'rxjs';
+import { Observable, map, fromEvent } from 'rxjs';
 import { DynamicModule, isConstructor } from '../core/type/types';
 import { CommandInfo, CommandProvider, isCommandInfo, CommandWithData } from './command.type';
 import { ParseCommandPipe } from './command.mipipe';
@@ -83,7 +83,7 @@ export class CommandModule {
     configurationFnc(this.program, this.output);
     return this;
   }
-  public inject(): DynamicModule {
+  public inject(instanceMap?: Map<string, object>): DynamicModule {
     const array = this.commandProviderArray;
     const program = this.program;
     return {
@@ -117,6 +117,13 @@ export class CommandModule {
             CommandModule.logger.info(`commandProvider：${val.name}已被接受`);
           }),
         );
+      },
+      providersImported(con) {
+        if (instanceMap) {
+          instanceMap.forEach((val, key) => {
+            con.setToInstanceMap(key, val);
+          });
+        }
       },
     };
   }
