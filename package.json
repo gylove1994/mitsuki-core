@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "author": "gylove1994",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "scripts": {
-    "bot": "nodemon ./index.ts",
+    "bot": "nodemon ./index.ts -p",
     "pg": "nodemon ./playground/index.ts",
     "example": "nodemon ./example/index.ts",
     "test": "jest --detectOpenHandles",
