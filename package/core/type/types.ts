@@ -1,6 +1,6 @@
 import { Container } from '../container';
 import { LoggerLike } from '../../common/logger.adapter';
-import { EventType, MessageType } from 'mirai-ts';
+import Mirai, { EventType, MessageType } from 'mirai-ts';
 import { OperatorFunction, tap, UnaryFunction } from 'rxjs';
 
 export type ModuleOptions = {
@@ -17,7 +17,7 @@ export type ModuleOptions = {
 
 export type DynamicModule = ModuleOptions &
   Record<'name', string> &
-  Partial<Record<ModuleHookName, (container: Container) => void | Promise<void>>>;
+  Partial<Record<ModuleHookName, (container: Container, mirai: Mirai) => void | Promise<void>>>;
 
 export type BotEvent = 'message' | keyof EventType.EventMap | MessageType.ChatMessage['type'];
 
@@ -152,3 +152,7 @@ export type ModuleHookName =
   | 'providersInstanced'
   | 'providersExported'
   | 'moduleConstructed';
+
+export abstract class ModuleConstructed {
+  public static moduleConstructed(con: Container, mirai: Mirai) {}
+}
