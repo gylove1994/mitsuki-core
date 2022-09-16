@@ -1,4 +1,3 @@
-import { CommandController } from '../../mitsuki-bot/base-module/command.controller';
 import { Constructor, Provider } from '../core/type/types';
 import { Container } from '../core/container';
 import { Command, Option } from 'commander';
@@ -24,7 +23,7 @@ export class CommandModule {
   }
   public static register(commandInfo: CommandInfo | Command): CommandModule {
     if (isCommandInfo(commandInfo)) {
-      const command = new CommandModule();
+      const command = commandInfo.rootCommand ? new CommandModule(commandInfo.rootCommand) : new CommandModule();
       command.program.exitOverride();
       command.program.configureOutput({
         writeOut: (str) => {
@@ -88,6 +87,7 @@ export class CommandModule {
     const program = this.program;
     return {
       name: 'CommandModule',
+      container: new Container('CommandModule'),
       provider: [
         {
           provider: '[CommandModule]command',
@@ -101,6 +101,7 @@ export class CommandModule {
         CommandArgsPipe,
         ParseCommandPipe,
       ],
+      getProviderFromFather: true,
       exports: ['[CommandModule]command', '[CommandModule]output', CommandArgsPipe, ParseCommandPipe],
       async moduleConstructed(con) {
         await Promise.all(
@@ -117,13 +118,6 @@ export class CommandModule {
             CommandModule.logger.info(`commandProvider：${val.name}已被接受`);
           }),
         );
-      },
-      providersImported(con) {
-        if (instanceMap) {
-          instanceMap.forEach((val, key) => {
-            con.setToInstanceMap(key, val);
-          });
-        }
       },
     };
   }

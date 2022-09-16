@@ -1,6 +1,5 @@
 import path from 'path';
 import fs from 'fs';
-import { api } from '../../api-setting';
 import { Logger, LoggerLike } from '../common/logger.adapter';
 import { EventEmitter } from 'events';
 import { Injectable } from '../core/decorator';
@@ -36,7 +35,7 @@ export class ImgService {
       }
       setTimeout(() => {
         rj('超时');
-      }, api.expTime);
+      }, 3000);
     });
   }
   public async getPageImgFromUrl(url: string, fileName: string) {

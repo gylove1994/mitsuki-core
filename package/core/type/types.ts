@@ -8,16 +8,16 @@ export type ModuleOptions = {
   imports?:
     | Array<Constructor | DynamicModule>
     | (() => Promise<Array<DynamicModule | Constructor>> | Array<DynamicModule | Constructor>);
-  exports?:
-    | Array<string | Constructor>
-    | (() => Promise<Array<string | Constructor>> | Array<DynamicModule | Constructor>);
-  //todo object的避免
+  exports?: Array<string | Constructor> | (() => Promise<Array<string | Constructor>>);
   provider?: Array<Provider | Constructor> | (() => Promise<Array<Provider | Constructor>>);
+  passProviderToChild?: boolean | Array<Provider | Constructor> | (() => Promise<Array<Provider | Constructor>>);
+  getProviderFromFather?: boolean | Array<Provider | Constructor> | (() => Promise<Array<Provider | Constructor>>);
 };
 
 export type DynamicModule = ModuleOptions &
   Record<'name', string> &
-  Partial<Record<ModuleHookName, (container: Container, mirai: Mirai) => void | Promise<void>>>;
+  Partial<Record<ModuleHookName, (container: Container, mirai: Mirai) => void | Promise<void>>> &
+  Record<'container', Container>;
 
 export type BotEvent = 'message' | keyof EventType.EventMap | MessageType.ChatMessage['type'];
 

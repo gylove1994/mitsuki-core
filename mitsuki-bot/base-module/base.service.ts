@@ -6,6 +6,7 @@ import { Inject, Injectable, MiraiCore } from '../../package/core/decorator';
 import { program, Command } from 'commander';
 import { ImgService } from '../../package/image/img.service';
 import path from 'path';
+import { CommandOutput } from '../../package/command/command.mipipe';
 
 @Injectable()
 export class BaseService {

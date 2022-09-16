@@ -72,12 +72,12 @@ export function Inject(info: paramInfo): ParameterDecorator {
   };
 }
 
-export function createParamDecorator(ProviderName: string) {
+export function createParamDecorator(ProviderName: string, ...buildInPipe: Array<MitsukiPipe | string | Constructor>) {
   return (...pipe: Array<MitsukiPipe | string | Constructor>): ParameterDecorator =>
     (target, methodName, parameterIndex) => {
       const key = { target, methodName, parameterIndex };
       Container.ParamDecoratorInfoArray.push(key);
-      Container.paramInfoMap.set(key, { ProviderName, pipe });
+      Container.paramInfoMap.set(key, { ProviderName, pipe: buildInPipe.concat(pipe) });
     };
 }
 

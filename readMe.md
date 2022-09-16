@@ -1,6 +1,6 @@
 
 
-# Mitsuki-bot v0.9.5(pre-release)说明文档
+# Mitsuki v0.9.5(pre-release)说明文档
 
 ## 介绍
 
@@ -28,14 +28,24 @@
 
 ### 2.安装mitsuki
 
-​	现阶段仅能通过克隆git库的形式进行安装（后续将提供npm及mitsuki-cli的安装方式）：
+​	通过克隆git库的形式进行安装（后续将提供mitsuki-cli的安装方式）：
 
 ```shell
 $ git clone https://github.com/gylove1994/mitsuki-core.git mitsuki
 $ cd mitsuki
 $ yarn
-$ yarn run start
+
 ```
+
+​	通过nom/yarn的形式安装：
+
+```shell
+$ yarn add mitsuki
+or
+$ npm i mitsuki
+```
+
+
 
 ## 迈出伟大的第一步
 

@@ -66,7 +66,11 @@ export class Container {
     container.instanceMap.set(key, val);
     container.event.emit(key, val);
   }
-  public async getInstance(name: string, rejectTime?: number) {
+  public async getInstance(name: string, rejectTime?: number, noErr?: boolean) {
+    //todo 不好的方法
+    if (name == '[init:ProviderMap]') {
+      return this.instanceMap;
+    }
     Container.logger.info(`即将从依赖库：${this.containerName} 中获得实例：${name}`);
     if (this.instanceMap.has(name)) {
       return this.instanceMap.get(name);
@@ -86,7 +90,7 @@ export class Container {
         setTimeout(
           () => {
             // Container.logger.error(`获得所需实例：${name} 的回调超时，请检查是否存在该实例`);
-            reject(`获得所需实例：${name} 的回调超时，请检查是否存在该实例`);
+            noErr == true ? resolve(undefined) : reject(`获得所需实例：${name} 的回调超时，请检查是否存在该实例`);
           },
           rejectTime ? rejectTime : 3000,
         );
@@ -109,6 +113,7 @@ export class Container {
     container: Container,
     constructor: Constructor,
     name: string,
+    //todo 使参数可选
     providers: Array<Provider | Constructor>,
     scope?: Scope,
     noSave?: boolean,
@@ -185,25 +190,25 @@ export class Container {
         for (const key of Container.global.keys()) {
           keys.push(key);
         }
-        if (providerNames && providerNames.concat(keys).find((val) => info.ProviderName == val)) {
-          //使用管道转换值
-          if (info.pipe) {
-            Container.logger.info(
-              `即将准备从依赖库"${container.containerName}"中获取实例:${info.ProviderName}，此行为可能因为超时而失败`,
-            );
-            let val = await container.getInstance(info.ProviderName);
-            val = await Container.transformPipeValue(val, container, paramInfoKey, info.pipe);
-            return val;
-          }
-          //从依赖库中获得依赖
+        // if (providerNames && providerNames.concat(keys).find((val) => info.ProviderName == val)) {
+        //使用管道转换值
+        if (info.pipe) {
           Container.logger.info(
             `即将准备从依赖库"${container.containerName}"中获取实例:${info.ProviderName}，此行为可能因为超时而失败`,
           );
-          return container.getInstance(info.ProviderName);
-        } else {
-          Container.logger.error(`所需要的依赖${info.ProviderName}在依赖库中不存在，请将其添加至该模组的provider`);
-          throw new Error(`所需要的依赖${info.ProviderName}在依赖库中不存在，请将其添加至该模组的provider`);
+          let val = await container.getInstance(info.ProviderName);
+          val = await Container.transformPipeValue(val, container, paramInfoKey, info.pipe);
+          return val;
         }
+        //从依赖库中获得依赖
+        Container.logger.info(
+          `即将准备从依赖库"${container.containerName}"中获取实例:${info.ProviderName}，此行为可能因为超时而失败`,
+        );
+        return container.getInstance(info.ProviderName);
+        // } else {
+        //   Container.logger.error(`所需要的依赖${info.ProviderName}在依赖库中不存在，请将其添加至该模组的provider`);
+        //   throw new Error(`所需要的依赖${info.ProviderName}在依赖库中不存在，请将其添加至该模组的provider`);
+        // }
       } else {
         Container.logger.error('错误的参数装饰器:' + paramInfoKey);
         throw new Error('错误的参数装饰器:' + paramInfoKey);
@@ -332,7 +337,11 @@ export class Container {
     }
   }
   //构建模块
-  public static async buildModule(rootModule: Constructor | DynamicModule, mirai: Mirai): Promise<Container[]> {
+  public static async buildModule(
+    rootModule: Constructor | DynamicModule,
+    mirai: Mirai,
+    passProviders?: Map<string, object>,
+  ): Promise<Container[]> {
     Container.logger.info(`即将开始解析模块：${rootModule.name}`);
     const module_options: ModuleOptions = Reflect.getMetadata(MODULES_OPTIONS, rootModule)
       ? Reflect.getMetadata(MODULES_OPTIONS, rootModule)
@@ -342,14 +351,28 @@ export class Container {
     }
     const container: Container = Reflect.getMetadata(CONTAINER, rootModule)
       ? Reflect.getMetadata(CONTAINER, rootModule)
-      : new Container(rootModule.name);
+      : (rootModule as DynamicModule).container;
     //生命周期钩子moduleCreated触发
     Container.hooker.emit('moduleCreated', this);
     if ((rootModule as any).moduleCreated) {
       await (rootModule as any).moduleCreated(container);
     }
+    //todo 解析provider和构造函数
+    //如果允许从父容器传入provider并且父容器确实传入了provider，将传入的放入instanceMap
+    if (module_options.getProviderFromFather === true && passProviders) {
+      passProviders.forEach((val, key) => {
+        container.setToInstanceMap(key, val);
+      });
+    }
+    //创建用于保存需要传入provider的模组，延后他们的创建
+    const needProviderToInstanceModules: Array<Constructor | DynamicModule> = [];
     //递归构建所导入的模块
-    const modules = module_options.imports?.map(async (module) => {
+    const modules = module_options.imports?.map(async (module: any) => {
+      //todo 临时方案
+      if (module.getProviderFromFather) {
+        needProviderToInstanceModules.push(module);
+        return;
+      }
       const created = await this.buildModule(module, mirai);
       //将导入类所导出的实例存入该实例类的实例仓库中
       created[0].exportedInstance.forEach((instance, key) => {
@@ -359,7 +382,14 @@ export class Container {
       return created;
     });
     //等待子模块导入完成
-    const rest = modules ? await Promise.all(modules) : [];
+    const r = modules ? await Promise.all(modules) : [];
+    //去除空项
+    const rest: Container[][] = [];
+    r.forEach((val) => {
+      if (val) {
+        rest.push(val);
+      }
+    });
     Container.logger.info(`${rootModule.name} 的子模块导入完成`);
     //生命周期钩子providersImported触发
     this.hooker.emit('providersImported', container, mirai);
@@ -462,6 +492,25 @@ export class Container {
       if ((rootModule as any).providersInstanced) {
         await (rootModule as any).providersInstanced(container);
       }
+    }
+    //todo 解析provider和构造函数
+    if (module_options.passProviderToChild === true) {
+      await Promise.all(
+        needProviderToInstanceModules.map(async (mo) => {
+          const exp = await Container.buildModule(mo, mirai, container.instanceMap);
+          exp[0].exportedInstance.forEach((val, key) => {
+            container.setToInstanceMap(key, val);
+          });
+        }),
+      );
+    }
+    if (!module_options.passProviderToChild && needProviderToInstanceModules.length > 0) {
+      Container.logger.error(
+        `在模组：${rootModule.name} 中有子模组需要该模组中的provider，但是该模组的passProviderToChild 选项未定义或者为false，请检查。`,
+      );
+      throw new Error(
+        `在模组：${rootModule.name} 中有子模组需要该模组中的provider，但是该模组的passProviderToChild 选项未定义或者为false，请检查。`,
+      );
     }
     //导出provider
     Container.logger.info(`模块：${rootModule.name} 将开始导出provider`);
@@ -610,6 +659,7 @@ export class Container {
       await Promise.all(ControllerArray);
     }
     //生命周期钩子moduleConstructed触发
+    //todo
     this.hooker.emit('moduleConstructed', container);
     if ((rootModule as any).moduleConstructed) {
       await (rootModule as any).moduleConstructed(container);

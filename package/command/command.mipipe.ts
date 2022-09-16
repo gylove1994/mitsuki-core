@@ -1,12 +1,27 @@
-import { createParamDecorator, createParamInterceptor, Data } from './../core/decorator';
+import { createParamDecorator, createParamInterceptor, Data, Inject } from './../core/decorator';
 import { ParseResult } from './command.type';
 import { MessageType } from 'mirai-ts';
 import { Command, CommanderError } from 'commander';
 import { Observable, Subscription } from 'rxjs';
 import { MitsukiPipe } from '../core/type/types';
-import { Inject, Injectable } from '../core/decorator';
-import { Container } from '../core/container';
+import { Injectable } from '../core/decorator';
 import { Logger, LoggerLike } from '../common/logger.adapter';
+
+// @Injectable()
+// export class GetCommandGroupPipe implements MitsukiPipe {
+//   constructor(@Inject({ ProviderName: '[CommandModule]command' }) private v: any) {}
+//   public transform(val: any) {
+//     return this.v;
+//   }
+// }
+
+// @Injectable()
+// export class GetCommandOutputPipe implements MitsukiPipe {
+//   constructor(@Inject({ ProviderName: '[CommandModule]output' }) private v: any) {}
+//   public transform(val: any) {
+//     return this.v;
+//   }
+// }
 
 export const CommandGroup = createParamDecorator('[CommandModule]command');
 

@@ -14,22 +14,19 @@ import { Container } from '../../package/core/container';
 import { InfoCommand } from './commands/info.command';
 //389833083, 699603078,
 @Module({
-  imports: [ImgModule, ConfigModule],
-  controller: [BaseController, CommandController],
-  provider: [BaseService, { provider: 'list', useValue: [775876618] }, Whitelist],
-  exports: [BaseService],
-})
-export class BaseModule implements ModuleConstructed {
-  public static async moduleConstructed(con: Container, mirai: Mirai) {
-    const dm = CommandModule.register({
+  passProviderToChild: true,
+  imports: [
+    ImgModule,
+    ConfigModule,
+    CommandModule.register({
       name: 'mitsuki',
       version: '0.9.5',
       description: 'mitsuki-core的测试示例',
       commands: [GenerateCommand, InfoCommand],
-    }).inject(con.exportedInstance);
-    const created = await Container.buildModule(dm, mirai);
-    created[0].exportedInstance.forEach((val, key) => {
-      con.setToInstanceMap(key, val);
-    });
-  }
-}
+    }).inject(),
+  ],
+  controller: [BaseController, CommandController],
+  provider: [BaseService, { provider: 'list', useValue: [775876618, 389833083, 699603078] }, Whitelist],
+  exports: [BaseService],
+})
+export class BaseModule {}

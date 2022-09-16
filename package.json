@@ -1,16 +1,19 @@
 {
   "name": "mitsuki",
-  "version": "1.0.0",
+  "version": "0.9.5",
   "main": "index.js",
   "author": "gylove1994",
   "license": "AGPL-3.0",
+  "repository": {
+    "url": "https://github.com/gylove1994/mitsuki-core"
+  },
   "scripts": {
     "bot": "nodemon ./index.ts -p",
     "pg": "nodemon ./playground/index.ts",
     "example": "nodemon ./example/index.ts",
     "test": "jest --detectOpenHandles",
     "test-c" : "jest --coverage --detectOpenHandles",
-    "tsc": "tsc ./package/index"
+    "build": "rm -r ./build \n cd package \n tsc \n tir -c ./build",
   },
   "devDependencies": {
     "@types/ejs": "^3.1.1",

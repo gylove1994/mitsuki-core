@@ -6,7 +6,7 @@ import { filter, map, Subscription, Observable } from 'rxjs';
 import { Controller, Data, Handler, Inject } from '../../package/core/decorator';
 import { isCommand } from '../../package/command/command.rxpipe';
 import { Whitelist } from './whitelist.rxpipe';
-import { ParseCommand } from '../../package/command/command.mipipe';
+import { CommandGroup, ParseCommand } from '../../package/command/command.mipipe';
 
 @Controller()
 export class CommandController {

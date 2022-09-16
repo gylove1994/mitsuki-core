@@ -23,6 +23,7 @@ export type CommandInfo = {
   name: string;
   version?: string;
   description?: string;
+  rootCommand?: Command;
   commands?: Array<Command | Constructor>;
   options?: Array<Option>;
   configureWriteOut?: (str: string) => void;

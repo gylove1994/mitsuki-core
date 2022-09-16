@@ -70,9 +70,19 @@ export class MitsukiApplication {
     this.rootModule = module;
   }
   public async listen() {
-    const mitsuki = await Container.buildModule(this.rootModule, this.mirai);
-    // console.log(mitsuki);
+    const mitsuki = (await Container.buildModule(this.rootModule, this.mirai)) as Container[];
     Container.logger.info(chalk.greenBright('MitsukiApplication 成功启动'));
+    if (process.argv[2] == '-p') {
+      await Promise.all(
+        mitsuki.map(async (con) => {
+          const map = (await con.getInstance('[init:ProviderMap]')) as Map<string, object>;
+          Container.logger.info(`模块 ${con.containerName} 中接受了如下的Provider：`);
+          map.forEach((value, key) => {
+            Container.logger.info('Provider令牌：' + key);
+          });
+        }),
+      );
+    }
     this.mirai.listen();
   }
   public async globalInject(...val: Array<Provider | Constructor>) {
